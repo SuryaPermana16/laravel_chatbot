@@ -14,7 +14,9 @@ return new class extends Migration
         Schema::create('pasiens', function (Blueprint $table) {
             $table->id(); 
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-
+            
+            $table->enum('jenis_kelamin', ['L', 'P'])->nullable(); 
+            $table->date('tanggal_lahir')->nullable();
             $table->string('nama_lengkap');
             $table->text('alamat')->nullable();       
             $table->string('no_telepon')->nullable(); 

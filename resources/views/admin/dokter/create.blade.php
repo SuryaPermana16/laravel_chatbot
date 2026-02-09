@@ -3,6 +3,10 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">Tambah Dokter</h2>
     </x-slot>
 
+    <style>
+        input::-ms-reveal, input::-ms-clear { display: none; }
+    </style>
+
     <div class="py-12">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white p-6 shadow-sm sm:rounded-lg">
@@ -34,7 +38,20 @@
 
                     <div class="mb-4">
                         <label class="block font-bold mb-1">Password</label>
-                        <input type="password" name="password" class="w-full border rounded p-2" required>
+                        
+                        <div style="position: relative; width: 100%;">
+                            
+                            <input type="password" name="password" id="passDokterCreate" 
+                                   class="w-full border rounded p-2" 
+                                   style="padding-right: 40px;" 
+                                   required>
+                            
+                            <span onclick="togglePassword('passDokterCreate', 'iconDokterCreate')" 
+                                  style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #6b7280; z-index: 10;">
+                                <i id="iconDokterCreate" class="fas fa-eye"></i>
+                            </span>
+
+                        </div>
                     </div>
 
                     <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Simpan Dokter</button>

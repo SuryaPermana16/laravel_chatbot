@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dashboard\AdminController;
 use App\Http\Controllers\Dashboard\ObatController;
 use App\Http\Controllers\Dashboard\DokterController;
+use App\Http\Controllers\Dashboard\PasienController;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,5 +61,12 @@ Route::get('/admin/dokter/edit/{id}', [DokterController::class, 'edit'])->name('
 Route::put('/admin/dokter/update/{id}', [DokterController::class, 'update'])->name('admin.dokter.update');
 Route::delete('/admin/dokter/hapus/{id}', [DokterController::class, 'destroy'])->name('admin.dokter.destroy');
 
+// === MANAJEMEN PASIEN ===
+Route::get('/admin/pasien', [PasienController::class, 'index'])->name('admin.pasien.index');
+Route::get('/admin/pasien/tambah', [PasienController::class, 'create'])->name('admin.pasien.create');
+Route::post('/admin/pasien/simpan', [PasienController::class, 'store'])->name('admin.pasien.store');
+Route::get('/admin/pasien/edit/{id}', [PasienController::class, 'edit'])->name('admin.pasien.edit');
+Route::put('/admin/pasien/update/{id}', [PasienController::class, 'update'])->name('admin.pasien.update');
+Route::delete('/admin/pasien/hapus/{id}', [PasienController::class, 'destroy'])->name('admin.pasien.destroy');
 
 require __DIR__.'/auth.php';

@@ -10,4 +10,8 @@
     <x-nav-link :href="route('admin.dokter.index')" :active="request()->routeIs('admin.dokter.*')">
         {{ __('Data Dokter') }}
     </x-nav-link>
+
+    <x-nav-link :href="route('admin.pasien.index')" :active="request()->routeIs('admin.pasien.*')">
+    {{ __('Data Pasien') }}
+</x-nav-link>
 </div>
