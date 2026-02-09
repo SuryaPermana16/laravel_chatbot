@@ -4,25 +4,29 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\User;
+use App\Models\Pasien;
+use App\Models\Dokter;
 use App\Models\Obat;
-// use App\Models\Kunjungan; // Aktifkan jika sudah ada model Kunjungan
+use App\Models\JadwalDokter;
 
 class AdminController extends Controller
 {
     public function index()
     {
-        // 1. Ambil Data Statistik
-        $total_pasien = User::where('role', 'pasien')->count();
-        $total_dokter = User::where('role', 'dokter')->count();
+        // Hitung data untuk statistik dashboard
+        $total_pasien = Pasien::count();
+        $total_dokter = Dokter::count();
         $total_obat = Obat::count();
-        $kunjungan_hari_ini = 0; // Placeholder
+        $total_jadwal = JadwalDokter::count();
+        
+        // Contoh data dummy untuk kunjungan (nanti bisa diganti real dari tabel Kunjungan)
+        $kunjungan_hari_ini = 0; 
 
-        // 2. Kirim ke View (PATH SUDAH DIPERBAIKI)
         return view('admin.dashboard', compact(
             'total_pasien', 
             'total_dokter', 
-            'total_obat',
+            'total_obat', 
+            'total_jadwal',
             'kunjungan_hari_ini'
         ));
     }
