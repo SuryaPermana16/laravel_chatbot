@@ -19,6 +19,10 @@
                     
                     @elseif(request()->routeIs('admin.jadwal.*'))
                         <i class="fas fa-calendar-check text-purple-600"></i> 
+
+                    {{-- TAMBAHAN: Ikon untuk Halaman Antrean --}}
+                    @elseif(request()->routeIs('admin.kunjungan.*'))
+                        <i class="fas fa-clipboard-list text-teal-600"></i>
                     
                     @elseif(request()->routeIs('profile.*'))
                         <i class="fas fa-user-circle text-gray-600"></i> 
@@ -41,6 +45,11 @@
                         Data Pasien
                     @elseif(request()->routeIs('admin.jadwal.*'))
                         Jadwal Praktek Dokter
+                    
+                    {{-- TAMBAHAN: Judul untuk Halaman Antrean --}}
+                    @elseif(request()->routeIs('admin.kunjungan.*'))
+                        Antrean Pasien Hari Ini
+
                     @elseif(request()->routeIs('profile.*'))
                         Profil Saya
                     @else
@@ -102,6 +111,11 @@
                 <x-responsive-nav-link :href="route('admin.dokter.index')" :active="request()->routeIs('admin.dokter.*')">Data Dokter</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.pasien.index')" :active="request()->routeIs('admin.pasien.*')">Data Pasien</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.jadwal.index')" :active="request()->routeIs('admin.jadwal.*')">Jadwal Dokter</x-responsive-nav-link>
+                
+                {{-- TAMBAHAN: Menu Mobile untuk Antrean --}}
+                <x-responsive-nav-link :href="route('admin.kunjungan.index')" :active="request()->routeIs('admin.kunjungan.*')">
+                    Antrean Pasien
+                </x-responsive-nav-link>
             @endif
         </div>
 

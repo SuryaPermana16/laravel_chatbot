@@ -89,6 +89,22 @@
                     <p class="text-sm text-gray-500 mt-1">Atur Jam Kerja Dokter</p>
                 </a>
 
+                <a href="{{ route('admin.kunjungan.index') }}" class="block bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-teal-500 transition group">
+                    <div class="text-teal-600 mb-2 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-clipboard-list text-3xl"></i>
+                    </div>
+                    <h4 class="font-bold text-gray-800">Antrean Pasien</h4>
+                    <p class="text-sm text-gray-500 mt-1">Pantau kunjungan hari ini</p>
+                </a>
+
+                <a href="{{ route('admin.laporan.index') }}" class="block bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-red-500 transition group h-full">
+                    <div class="text-red-600 mb-2 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-file-pdf text-3xl"></i>
+                    </div>
+                    <h4 class="font-bold text-gray-800">Laporan</h4>
+                    <p class="text-sm text-gray-500 mt-1">Cetak Data Kunjungan</p>
+                </a>
+
             </div>
         </div>
     </div>

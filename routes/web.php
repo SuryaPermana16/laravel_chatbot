@@ -9,6 +9,8 @@ use App\Http\Controllers\Dashboard\ObatController;
 use App\Http\Controllers\Dashboard\DokterController;
 use App\Http\Controllers\Dashboard\PasienController;
 use App\Http\Controllers\Dashboard\JadwalDokterController;
+use App\Http\Controllers\Dashboard\KelolaKunjunganController;
+use App\Http\Controllers\Dashboard\LaporanController;
 
 // Controller User (Pasien)
 use App\Http\Controllers\User\DashboardController as UserDashboard;
@@ -93,6 +95,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/jadwal/edit/{id}', [JadwalDokterController::class, 'edit'])->name('admin.jadwal.edit');
     Route::put('/admin/jadwal/update/{id}', [JadwalDokterController::class, 'update'])->name('admin.jadwal.update');
     Route::delete('/admin/jadwal/hapus/{id}', [JadwalDokterController::class, 'destroy'])->name('admin.jadwal.destroy');
+
+    // Route Kelola Antrean
+    Route::get('/admin/kunjungan', [KelolaKunjunganController::class, 'index'])->name('admin.kunjungan.index');
+    Route::patch('/admin/kunjungan/{id}/status', [KelolaKunjunganController::class, 'updateStatus'])->name('admin.kunjungan.updateStatus');
+
+    // === ROUTE LAPORAN PDF ===
+    Route::get('/admin/laporan', [LaporanController::class, 'index'])->name('admin.laporan.index');
+    Route::post('/admin/laporan/cetak', [LaporanController::class, 'cetak'])->name('admin.laporan.cetak');
 
 });
 
