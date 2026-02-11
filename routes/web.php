@@ -1,9 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ProfileController;
 
-// Controller Admin
+// Import Controller Dashboard per Role
 use App\Http\Controllers\Dashboard\AdminController;
 use App\Http\Controllers\Dashboard\ObatController;
 use App\Http\Controllers\Dashboard\DokterController;
@@ -11,103 +12,141 @@ use App\Http\Controllers\Dashboard\PasienController;
 use App\Http\Controllers\Dashboard\JadwalDokterController;
 use App\Http\Controllers\Dashboard\KelolaKunjunganController;
 use App\Http\Controllers\Dashboard\LaporanController;
+use App\Http\Controllers\Dashboard\ApotekerController as AdminKelolaApoteker;
 
-// Controller User (Pasien)
+// Import Controller User/Dokter/Apoteker
 use App\Http\Controllers\User\DashboardController as UserDashboard;
 use App\Http\Controllers\User\PendaftaranController;
+use App\Http\Controllers\Dokter\DashboardController as DokterDashboard;
+use App\Http\Controllers\Dokter\PeriksaController;
+use App\Http\Controllers\Apoteker\DashboardController as ApotekerDashboard;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes
+| 1. HALAMAN PUBLIK
 |--------------------------------------------------------------------------
 */
+Route::get('/', function () { return view('welcome'); });
+Route::get('/chatbot', function () { return view('chatbot'); });
 
-// 1. HALAMAN PUBLIK
-Route::get('/', function () {
-    return view('welcome');
-});
-
-Route::get('/chatbot', function () {
-    return view('chatbot');
-});
-
-
-// 2. "POLISI LALU LINTAS" (Traffic Police)
+/*
+|--------------------------------------------------------------------------
+| 2. PENGATUR LALU LINTAS (Dashboard Redirector)
+|--------------------------------------------------------------------------
+*/
 Route::get('/dashboard', function () {
-    if (auth()->user()->role === 'admin') {
-        return redirect()->route('admin.dashboard');
-    } else {
-        return redirect()->route('user.dashboard');
-    }
+    $role = Auth::user()->role;
+    if ($role === 'admin') return redirect()->route('admin.dashboard');
+    if ($role === 'dokter') return redirect()->route('dokter.dashboard');
+    if ($role === 'apoteker') return redirect()->route('apoteker.dashboard');
+    return redirect()->route('user.dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-
-// 3. GRUP KHUSUS PASIEN / USER
-Route::middleware(['auth', 'verified'])->group(function () {
+/*
+|--------------------------------------------------------------------------
+| 3. GRUP KHUSUS ADMIN (Manajemen Data)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     
-    // Dashboard Pasien
-    Route::get('/user/dashboard', [UserDashboard::class, 'index'])->name('user.dashboard');
-
-    // === TAMBAHAN 2: RUTE PENDAFTARAN / BOOKING ===
-    // Menampilkan Form Pendaftaran
-    Route::get('/user/daftar/{id_jadwal}', [PendaftaranController::class, 'showForm'])->name('user.daftar');
+    // Dashboard Utama Admin
+    Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
     
-    // Memproses Data Pendaftaran (Simpan ke Database)
-    Route::post('/user/daftar/{id_jadwal}', [PendaftaranController::class, 'store'])->name('user.daftar.store');
+    // Kelola Obat
+    Route::controller(ObatController::class)->prefix('obat')->name('obat.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/tambah', 'create')->name('create');
+        Route::post('/simpan', 'store')->name('store');
+        Route::get('/edit/{id}', 'edit')->name('edit');
+        Route::put('/update/{id}', 'update')->name('update');
+        Route::delete('/hapus/{id}', 'destroy')->name('destroy');
+    });
 
+    // Kelola Dokter
+    Route::controller(DokterController::class)->prefix('dokter')->name('dokter.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/tambah', 'create')->name('create');
+        Route::post('/simpan', 'store')->name('store');
+        Route::get('/edit/{id}', 'edit')->name('edit');
+        Route::put('/update/{id}', 'update')->name('update');
+        Route::delete('/hapus/{id}', 'destroy')->name('destroy');
+    });
+
+    // Kelola Apoteker
+    Route::controller(AdminKelolaApoteker::class)->prefix('apoteker')->name('apoteker.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/store', 'store')->name('store');
+        Route::get('/{id}/edit', 'edit')->name('edit');
+        Route::put('/{id}', 'update')->name('update');
+        Route::delete('/{id}', 'destroy')->name('destroy');
+    });
+
+    // Kelola Pasien
+    Route::controller(PasienController::class)->prefix('pasien')->name('pasien.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/tambah', 'create')->name('create');
+        Route::post('/simpan', 'store')->name('store');
+        Route::get('/edit/{id}', 'edit')->name('edit');
+        Route::put('/update/{id}', 'update')->name('update');
+        Route::delete('/hapus/{id}', 'destroy')->name('destroy');
+    });
+
+    // Kelola Jadwal Dokter
+    Route::controller(JadwalDokterController::class)->prefix('jadwal')->name('jadwal.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/tambah', 'create')->name('create');
+        Route::post('/simpan', 'store')->name('store');
+        Route::get('/edit/{id}', 'edit')->name('edit');
+        Route::put('/update/{id}', 'update')->name('update');
+        Route::delete('/hapus/{id}', 'destroy')->name('destroy');
+    });
+
+    // Antrean & Laporan
+    Route::get('/kunjungan', [KelolaKunjunganController::class, 'index'])->name('kunjungan.index');
+    Route::patch('/kunjungan/{id}/status', [KelolaKunjunganController::class, 'updateStatus'])->name('kunjungan.updateStatus');
+    Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
+    Route::post('/laporan/cetak', [LaporanController::class, 'cetak'])->name('laporan.cetak');
 });
 
-
-// 4. GRUP KHUSUS ADMIN
-Route::middleware(['auth'])->group(function () {
-    
-    // Dashboard Admin
-    Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
-    
-    // === MANAJEMEN OBAT ===
-    Route::get('/admin/obat', [ObatController::class, 'index'])->name('admin.obat.index');
-    Route::get('/admin/obat/tambah', [ObatController::class, 'create'])->name('admin.obat.create');
-    Route::post('/admin/obat/simpan', [ObatController::class, 'store'])->name('admin.obat.store');
-    Route::get('/admin/obat/edit/{id}', [ObatController::class, 'edit'])->name('admin.obat.edit');
-    Route::put('/admin/obat/update/{id}', [ObatController::class, 'update'])->name('admin.obat.update');
-    Route::delete('/admin/obat/hapus/{id}', [ObatController::class, 'destroy'])->name('admin.obat.destroy');
-
-    // === MANAJEMEN DOKTER ===
-    Route::get('/admin/dokter', [DokterController::class, 'index'])->name('admin.dokter.index');
-    Route::get('/admin/dokter/tambah', [DokterController::class, 'create'])->name('admin.dokter.create');
-    Route::post('/admin/dokter/simpan', [DokterController::class, 'store'])->name('admin.dokter.store');
-    Route::get('/admin/dokter/edit/{id}', [DokterController::class, 'edit'])->name('admin.dokter.edit');
-    Route::put('/admin/dokter/update/{id}', [DokterController::class, 'update'])->name('admin.dokter.update');
-    Route::delete('/admin/dokter/hapus/{id}', [DokterController::class, 'destroy'])->name('admin.dokter.destroy');
-
-    // === MANAJEMEN PASIEN ===
-    Route::get('/admin/pasien', [PasienController::class, 'index'])->name('admin.pasien.index');
-    Route::get('/admin/pasien/tambah', [PasienController::class, 'create'])->name('admin.pasien.create');
-    Route::post('/admin/pasien/simpan', [PasienController::class, 'store'])->name('admin.pasien.store');
-    Route::get('/admin/pasien/edit/{id}', [PasienController::class, 'edit'])->name('admin.pasien.edit');
-    Route::put('/admin/pasien/update/{id}', [PasienController::class, 'update'])->name('admin.pasien.update');
-    Route::delete('/admin/pasien/hapus/{id}', [PasienController::class, 'destroy'])->name('admin.pasien.destroy');
-
-    // === MANAJEMEN JADWAL DOKTER ===
-    Route::get('/admin/jadwal', [JadwalDokterController::class, 'index'])->name('admin.jadwal.index');
-    Route::get('/admin/jadwal/tambah', [JadwalDokterController::class, 'create'])->name('admin.jadwal.create');
-    Route::post('/admin/jadwal/simpan', [JadwalDokterController::class, 'store'])->name('admin.jadwal.store');
-    Route::get('/admin/jadwal/edit/{id}', [JadwalDokterController::class, 'edit'])->name('admin.jadwal.edit');
-    Route::put('/admin/jadwal/update/{id}', [JadwalDokterController::class, 'update'])->name('admin.jadwal.update');
-    Route::delete('/admin/jadwal/hapus/{id}', [JadwalDokterController::class, 'destroy'])->name('admin.jadwal.destroy');
-
-    // Route Kelola Antrean
-    Route::get('/admin/kunjungan', [KelolaKunjunganController::class, 'index'])->name('admin.kunjungan.index');
-    Route::patch('/admin/kunjungan/{id}/status', [KelolaKunjunganController::class, 'updateStatus'])->name('admin.kunjungan.updateStatus');
-
-    // === ROUTE LAPORAN PDF ===
-    Route::get('/admin/laporan', [LaporanController::class, 'index'])->name('admin.laporan.index');
-    Route::post('/admin/laporan/cetak', [LaporanController::class, 'cetak'])->name('admin.laporan.cetak');
-
+/*
+|--------------------------------------------------------------------------
+| 4. GRUP KHUSUS DOKTER
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->prefix('dokter')->name('dokter.')->group(function () {
+    Route::get('/dashboard', [DokterDashboard::class, 'index'])->name('dashboard');
+    Route::get('/periksa/{id}', [PeriksaController::class, 'periksa'])->name('periksa');
+    Route::post('/periksa/{id}', [PeriksaController::class, 'simpanPeriksa'])->name('periksa.simpan');
 });
 
+/*
+|--------------------------------------------------------------------------
+| 5. GRUP KHUSUS APOTEKER
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->prefix('apoteker')->name('apoteker.')->group(function () {
+    Route::get('/dashboard', [ApotekerDashboard::class, 'index'])->name('dashboard');
+    // Proses Serahkan Obat (Mengubah status menjadi 'diambil')
+    Route::patch('/dashboard/{id}/selesai', [ApotekerDashboard::class, 'selesai'])->name('selesai');
+});
 
-// 5. GRUP PROFILE (Bawaan Breeze)
+/*
+|--------------------------------------------------------------------------
+| 6. GRUP KHUSUS PASIEN / USER
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'verified'])->prefix('user')->name('user.')->group(function () {
+    Route::get('/dashboard', [UserDashboard::class, 'index'])->name('dashboard');
+    Route::get('/daftar/{id_jadwal}', [PendaftaranController::class, 'showForm'])->name('daftar');
+    Route::post('/daftar/{id_jadwal}', [PendaftaranController::class, 'store'])->name('daftar.store');
+});
+
+/*
+|--------------------------------------------------------------------------
+| 7. PROFILE & AUTH BREEZE
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

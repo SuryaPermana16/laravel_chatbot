@@ -28,7 +28,22 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // 1. Cek role user yang baru login
+        $role = $request->user()->role; 
+
+        // 2. Arahkan ke dashboard masing-masing sesuai role
+        if ($role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        } elseif ($role === 'dokter') {
+            return redirect()->route('dokter.dashboard');
+        } elseif ($role === 'apoteker') {
+            return redirect()->route('apoteker.dashboard'); 
+        }
+
+        // 3. Default redirect untuk pasien/user biasa
+        // (Jika terjadi error Route [user.dashboard] not defined, 
+        // ubah menjadi return redirect()->route('dashboard'); sesuai bawaan awal)
+        return redirect()->route('user.dashboard'); 
     }
 
     /**

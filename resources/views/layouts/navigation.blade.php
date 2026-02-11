@@ -3,16 +3,24 @@
         <div class="flex justify-between h-16">
             
             <div class="flex items-center text-gray-800">
-                
                 <div class="mr-3 text-3xl leading-none flex items-center"> 
-                    @if(request()->routeIs('admin.dashboard') || request()->routeIs('user.dashboard') || request()->routeIs('dashboard'))
-                        <i class="fas fa-home text-gray-600"></i> 
+                    @if(request()->routeIs('admin.dashboard'))
+                        <i class="fas fa-user-shield text-gray-500"></i> 
                     
+                    @elseif(request()->routeIs('user.dashboard'))
+                        <i class="fas fa-hospital-user text-red-500"></i> 
+
+                    @elseif(request()->routeIs('dokter.dashboard'))
+                        <i class="fas fa-user-md text-blue-500"></i>
+
                     @elseif(request()->routeIs('admin.obat.*'))
                         <i class="fas fa-capsules text-blue-600"></i> 
                     
                     @elseif(request()->routeIs('admin.dokter.*'))
                         <i class="fas fa-user-doctor text-green-600"></i> 
+
+                    @elseif(request()->routeIs('admin.apoteker.*'))
+                        <i class="fas fa-user-nurse text-teal-600"></i> 
                     
                     @elseif(request()->routeIs('admin.pasien.*'))
                         <i class="fas fa-hospital-user text-indigo-600"></i> 
@@ -20,9 +28,11 @@
                     @elseif(request()->routeIs('admin.jadwal.*'))
                         <i class="fas fa-calendar-check text-purple-600"></i> 
 
-                    {{-- TAMBAHAN: Ikon untuk Halaman Antrean --}}
                     @elseif(request()->routeIs('admin.kunjungan.*'))
                         <i class="fas fa-clipboard-list text-teal-600"></i>
+
+                    @elseif(request()->routeIs('admin.laporan.*'))
+                        <i class="fas fa-file-pdf text-red-600"></i>
                     
                     @elseif(request()->routeIs('profile.*'))
                         <i class="fas fa-user-circle text-gray-600"></i> 
@@ -35,21 +45,26 @@
                 <h2 class="font-bold text-xl leading-tight ml-1">
                     @if(request()->routeIs('admin.dashboard'))
                         Dashboard Admin
+                    @elseif(request()->routeIs('dokter.dashboard'))
+                        Dashboard Dokter
+                    @elseif(request()->routeIs('apoteker.dashboard'))
+                        Dashboard Apoteker
                     @elseif(request()->routeIs('user.dashboard'))
                         Dashboard Pasien
                     @elseif(request()->routeIs('admin.obat.*'))
                         Kelola Data Obat
                     @elseif(request()->routeIs('admin.dokter.*'))
                         Kelola Data Dokter
+                    @elseif(request()->routeIs('admin.apoteker.*'))
+                        Kelola Data Apoteker
                     @elseif(request()->routeIs('admin.pasien.*'))
                         Data Pasien
                     @elseif(request()->routeIs('admin.jadwal.*'))
                         Jadwal Praktek Dokter
-                    
-                    {{-- TAMBAHAN: Judul untuk Halaman Antrean --}}
                     @elseif(request()->routeIs('admin.kunjungan.*'))
                         Antrean Pasien Hari Ini
-
+                    @elseif(request()->routeIs('admin.laporan.*'))
+                        Laporan Kunjungan
                     @elseif(request()->routeIs('profile.*'))
                         Profil Saya
                     @else
@@ -109,13 +124,11 @@
             @if(Auth::user()->role === 'admin')
                 <x-responsive-nav-link :href="route('admin.obat.index')" :active="request()->routeIs('admin.obat.*')">Data Obat</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.dokter.index')" :active="request()->routeIs('admin.dokter.*')">Data Dokter</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.apoteker.index')" :active="request()->routeIs('admin.apoteker.*')">Data Apoteker</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.pasien.index')" :active="request()->routeIs('admin.pasien.*')">Data Pasien</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.jadwal.index')" :active="request()->routeIs('admin.jadwal.*')">Jadwal Dokter</x-responsive-nav-link>
-                
-                {{-- TAMBAHAN: Menu Mobile untuk Antrean --}}
-                <x-responsive-nav-link :href="route('admin.kunjungan.index')" :active="request()->routeIs('admin.kunjungan.*')">
-                    Antrean Pasien
-                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.kunjungan.index')" :active="request()->routeIs('admin.kunjungan.*')">Antrean Pasien</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.laporan.index')" :active="request()->routeIs('admin.laporan.*')">Laporan</x-responsive-nav-link>
             @endif
         </div>
 
@@ -132,7 +145,7 @@
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault(); this.closest('form').submit();" class="text-red-600">
+                            onclick="event.preventDefault(); this.closest('form').submit();" class="text-red-600 font-bold">
                         {{ __('Log Out') }}
                     </x-responsive-nav-link>
                 </form>

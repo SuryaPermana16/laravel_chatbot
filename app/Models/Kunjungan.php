@@ -9,7 +9,7 @@ class Kunjungan extends Model
 {
     use HasFactory;
 
-    protected $table = 'kunjungans'; // Pastikan nama tabelnya benar
+    protected $table = 'kunjungans'; 
 
     protected $fillable = [
         'pasien_id',
@@ -18,6 +18,8 @@ class Kunjungan extends Model
         'jam_pilihan',
         'tanggal_kunjungan',
         'keluhan',
+        'diagnosa',    // TAMBAHKAN INI
+        'resep_obat',  // TAMBAHKAN INI
         'status',
     ];
 

@@ -12,8 +12,14 @@
                 </a>
             </div>
 
+            @if(session('success'))
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4 shadow-sm">
+                <span class="block sm:inline font-bold"><i class="fas fa-check-circle mr-2"></i>{{ session('success') }}</span>
+            </div>
+            @endif
+
             <div class="flex justify-between items-center mb-4">
-                <a href="{{ route('admin.jadwal.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                <a href="{{ route('admin.jadwal.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow-sm">
                     + Tambah Jadwal Baru
                 </a>
             </div>
@@ -32,12 +38,12 @@
                         </thead>
                         <tbody>
                             @foreach ($jadwals as $jadwal)
-                            <tr class="border-b hover:bg-gray-50">
+                            <tr class="border-b hover:bg-gray-50 transition">
                                 <td class="px-4 py-2 font-bold">{{ $jadwal->dokter->nama_lengkap }}</td>
                                 <td class="px-4 py-2">
                                     <span class="bg-gray-200 px-2 py-1 rounded text-xs font-bold">{{ $jadwal->hari }}</span>
                                 </td>
-                                <td class="px-4 py-2">
+                                <td class="px-4 py-2 font-medium">
                                     {{ date('H:i', strtotime($jadwal->jam_mulai)) }} - {{ date('H:i', strtotime($jadwal->jam_selesai)) }}
                                 </td>
                                 <td class="px-4 py-2 text-center">
@@ -57,7 +63,10 @@
                     </table>
                     
                     @if($jadwals->isEmpty())
-                        <div class="p-4 text-center text-gray-500">Belum ada jadwal dokter.</div>
+                        <div class="p-8 text-center text-gray-500 italic">
+                            <i class="fas fa-calendar-times mb-2 text-2xl block"></i>
+                            Belum ada jadwal dokter yang terdaftar.
+                        </div>
                     @endif
                 </div>
             </div>

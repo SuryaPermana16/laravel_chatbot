@@ -73,6 +73,14 @@
                     <p class="text-sm text-gray-500 mt-1">Data Dokter & Spesialis</p>
                 </a>
 
+                <a href="{{ route('admin.apoteker.index') }}" class="block bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-teal-500 transition group">
+                    <div class="text-teal-600 mb-2 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-user-nurse text-3xl"></i>
+                    </div>
+                    <h4 class="font-bold text-gray-800">Kelola Apoteker</h4>
+                    <p class="text-sm text-gray-500 mt-1">Data & Akun Apoteker</p>
+                </a>
+
                 <a href="{{ route('admin.pasien.index') }}" class="block bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-indigo-500 transition group">
                     <div class="text-indigo-600 mb-2 group-hover:scale-110 transition-transform">
                         <i class="fas fa-hospital-user text-3xl"></i>
