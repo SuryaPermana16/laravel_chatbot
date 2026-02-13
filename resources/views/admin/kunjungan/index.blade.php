@@ -61,27 +61,38 @@
                                         $colors = [
                                             'menunggu' => 'bg-yellow-100 text-yellow-800 border-yellow-200',
                                             'diperiksa' => 'bg-blue-100 text-blue-800 border-blue-200',
-                                            'selesai' => 'bg-green-100 text-green-800 border-green-200',
+                                            'periksa' => 'bg-blue-100 text-blue-800 border-blue-200', // Jaga-jaga beda penulisan
+                                            'selesai' => 'bg-purple-100 text-purple-800 border-purple-200',
+                                            'diambil' => 'bg-green-100 text-green-800 border-green-200',
                                             'batal' => 'bg-red-100 text-red-800 border-red-200'
                                         ];
                                     @endphp
                                     <span class="{{ $colors[$k->status] ?? 'bg-gray-100' }} px-3 py-1 rounded-full text-xs font-bold uppercase border">
-                                        {{ $k->status }}
+                                        @if($k->status == 'diambil') SELESAI
+                                        @elseif($k->status == 'selesai') RESEP DIBUAT
+                                        @else {{ $k->status }}
+                                        @endif
                                     </span>
                                 </td>
 
                                 <td class="px-6 py-4 text-center">
-                                    <form action="{{ route('admin.kunjungan.updateStatus', $k->id) }}" method="POST">
-                                        @csrf
-                                        @method('PATCH')
-                                        <select name="status" onchange="this.form.submit()" 
-                                                class="text-xs border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 cursor-pointer hover:bg-gray-50">
-                                            <option value="menunggu" {{ $k->status == 'menunggu' ? 'selected' : '' }}>⏳ Menunggu</option>
-                                            <option value="diperiksa" {{ $k->status == 'diperiksa' ? 'selected' : '' }}>👨‍⚕️ Diperiksa</option>
-                                            <option value="selesai" {{ $k->status == 'selesai' ? 'selected' : '' }}>✅ Selesai</option>
-                                            <option value="batal" {{ $k->status == 'batal' ? 'selected' : '' }}>❌ Batal</option>
-                                        </select>
-                                    </form>
+                                    @if($k->status == 'diambil')
+                                        <span class="text-xs font-bold text-green-600 uppercase">
+                                            <i class="fas fa-check-circle"></i> Tuntas
+                                        </span>
+                                    @else
+                                        <form action="{{ route('admin.kunjungan.updateStatus', $k->id) }}" method="POST">
+                                            @csrf
+                                            @method('PATCH')
+                                            <select name="status" onchange="this.form.submit()" 
+                                                    class="text-xs border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 cursor-pointer hover:bg-gray-50">
+                                                <option value="menunggu" {{ $k->status == 'menunggu' ? 'selected' : '' }}>⏳ Menunggu</option>
+                                                <option value="periksa" {{ $k->status == 'periksa' ? 'selected' : '' }}>👨‍⚕️ Diperiksa</option>
+                                                <option value="selesai" {{ $k->status == 'selesai' ? 'selected' : '' }}>✅ Selesai (Dokter)</option>
+                                                <option value="batal" {{ $k->status == 'batal' ? 'selected' : '' }}>❌ Batal</option>
+                                            </select>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                             @empty

@@ -129,6 +129,11 @@ Route::middleware(['auth'])->prefix('apoteker')->name('apoteker.')->group(functi
     Route::get('/dashboard', [ApotekerDashboard::class, 'index'])->name('dashboard');
     // Proses Serahkan Obat (Mengubah status menjadi 'diambil')
     Route::patch('/dashboard/{id}/selesai', [ApotekerDashboard::class, 'selesai'])->name('selesai');
+    // 1. ROUTE TAMBAHAN UNTUK UPDATE STOK CEPAT DI DASHBOARD (WAJIB ADA)
+    Route::patch('/obat/{id}/update-stok', [App\Http\Controllers\Apoteker\ObatController::class, 'updateStok'])->name('obat.updateStok');
+
+    // 2. Resource Controller untuk Halaman Kelola Obat Lengkap
+    Route::resource('obat', App\Http\Controllers\Apoteker\ObatController::class);
 });
 
 /*
