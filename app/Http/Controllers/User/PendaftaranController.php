@@ -3,86 +3,127 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\JadwalDokter;
 use App\Models\Kunjungan;
-use App\Models\Pasien;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class PendaftaranController extends Controller
 {
-    // 1. TAMPILKAN FORMULIR PENDAFTARAN
     public function showForm($id_jadwal)
     {
-        // Ambil data jadwal yang dipilih beserta informasi dokternya
+        // 1. Set Locale & Timezone WITA
+        Carbon::setLocale('id');
+        $now = Carbon::now('Asia/Makassar'); 
+
         $jadwal = JadwalDokter::with('dokter')->findOrFail($id_jadwal);
         
-        return view('user.pendaftaran', compact('jadwal'));
+        // 2. Tentukan Tanggal Kunjungan
+        $hariIni = $now->translatedFormat('l');
+        
+        if (strtolower($jadwal->hari) == strtolower($hariIni)) {
+            // Jika jam tutup praktek belum lewat, bisa daftar hari ini
+            if ($now->format('H:i') < $jadwal->jam_selesai) {
+                $tanggalKunjungan = $now->format('Y-m-d');
+            } else {
+                $tanggalKunjungan = Carbon::parse('next ' . $jadwal->hari)->format('Y-m-d');
+            }
+        } else {
+            $tanggalKunjungan = Carbon::parse('next ' . $jadwal->hari)->format('Y-m-d');
+        }
+
+        // 3. Generate Slot Waktu
+        $jamBuka = Carbon::parse($jadwal->jam_mulai);
+        $jamTutup = Carbon::parse($jadwal->jam_selesai);
+        $slots = [];
+
+        // Ambil jam yang sudah dibooking
+        $bookedSlots = Kunjungan::where('dokter_id', $jadwal->dokter_id)
+                        ->whereDate('tanggal_kunjungan', $tanggalKunjungan)
+                        ->whereNotIn('status', ['batal']) 
+                        ->pluck('jam_pilihan')
+                        ->map(fn($jam) => Carbon::parse($jam)->format('H:i'))
+                        ->toArray();
+
+        $isToday = ($tanggalKunjungan == $now->format('Y-m-d'));
+
+        while ($jamBuka->lt($jamTutup)) {
+            $jamStart = $jamBuka->format('H:i');
+            
+            // LOGIC REALTIME: 
+            // Jika pendaftaran untuk HARI INI, dan jam slot kurang dari jam SEKARANG (WITA)
+            // Maka slot dianggap 'Lewat'
+            $isPast = ($isToday && $jamStart <= $now->format('H:i'));
+            $isBooked = in_array($jamStart, $bookedSlots);
+
+            $status = 'Tersedia';
+            if ($isBooked) $status = 'Penuh';
+            if ($isPast) $status = 'Lewat';
+
+            $slots[] = [
+                'jam' => $jamStart,
+                'available' => ($status == 'Tersedia'),
+                'status' => $status
+            ];
+
+            $jamBuka->addMinutes(20);
+        }
+
+        return view('user.pendaftaran', compact('jadwal', 'slots', 'tanggalKunjungan'));
     }
 
-    // 2. PROSES SIMPAN DATA (BOOKING DENGAN PILIHAN JAM)
     public function store(Request $request, $id_jadwal)
     {
-        // Validasi input: keluhan wajib diisi, jam_pilihan wajib dipilih
+        $now = Carbon::now('Asia/Makassar');
+
         $request->validate([
-            'keluhan' => 'required|string|max:255',
-            'jam_pilihan' => 'required', 
+            'jam_pilihan' => 'required',
+            'keluhan' => 'required|string',
+            'tanggal_kunjungan' => 'required|date'
         ]);
+
+        // Cek lagi di Backend agar tidak kecolongan lewat inspect element
+        $isToday = ($request->tanggal_kunjungan == $now->format('Y-m-d'));
+        if ($isToday && $request->jam_pilihan <= $now->format('H:i')) {
+            return back()->with('error', 'Waktu sudah terlewati. Silakan pilih jam lain.');
+        }
 
         $jadwal = JadwalDokter::findOrFail($id_jadwal);
-        
-        // Cari data Pasien berdasarkan User yang sedang login
-        $pasien = Pasien::where('user_id', Auth::id())->first();
+        $pasien = Auth::user()->pasien;
 
-        // Cek apakah user ini terdaftar di tabel pasiens
         if (!$pasien) {
-            return back()->with('error', 'Data pasien tidak ditemukan. Silakan hubungi admin klinik.');
+            return back()->with('error', 'Lengkapi profil pasien terlebih dahulu.');
         }
 
-        // LOGIKA TANGGAL: Mencari tanggal praktek terdekat sesuai Hari di Jadwal
-        $hari_indonesia = [
-            'Senin' => Carbon::MONDAY,
-            'Selasa' => Carbon::TUESDAY,
-            'Rabu' => Carbon::WEDNESDAY,
-            'Kamis' => Carbon::THURSDAY,
-            'Jumat' => Carbon::FRIDAY,
-            'Sabtu' => Carbon::SATURDAY,
-            'Minggu' => Carbon::SUNDAY,
-        ];
+        $cekBentrok = Kunjungan::where('dokter_id', $jadwal->dokter_id)
+                    ->whereDate('tanggal_kunjungan', $request->tanggal_kunjungan)
+                    ->where('jam_pilihan', $request->jam_pilihan)
+                    ->whereNotIn('status', ['batal'])
+                    ->exists();
 
-        $target_hari = $hari_indonesia[$jadwal->hari];
-        $tanggal_kunjungan = Carbon::now();
-
-        // Geser tanggal sampai bertemu hari yang sesuai dengan jadwal praktek
-        while ($tanggal_kunjungan->dayOfWeekIso != $target_hari) {
-            $tanggal_kunjungan->addDay();
+        if ($cekBentrok) {
+            return back()->with('error', 'Jam tersebut baru saja dipesan orang lain.');
         }
 
-        // LOGIKA ANTRIAN: Menghitung jumlah pendaftar pada hari tersebut untuk menentukan nomor urut
-        $jumlah_antrian = Kunjungan::where('dokter_id', $jadwal->dokter_id)
-            ->whereDate('tanggal_kunjungan', $tanggal_kunjungan)
-            ->count();
+        $urutan = Kunjungan::where('dokter_id', $jadwal->dokter_id)
+                    ->whereDate('tanggal_kunjungan', $request->tanggal_kunjungan)
+                    ->count() + 1;
         
-        $no_antrian_baru = $jumlah_antrian + 1;
+        $noAntrian = 'A-' . str_pad($urutan, 3, '0', STR_PAD_LEFT);
 
-        // SIMPAN KE DATABASE
         Kunjungan::create([
-            'pasien_id' => $pasien->id,
+            'id_pasien' => $pasien->id,
             'dokter_id' => $jadwal->dokter_id,
-            'tanggal_kunjungan' => $tanggal_kunjungan,
-            'no_antrian' => $no_antrian_baru,
-            'jam_pilihan' => $request->jam_pilihan, // Menyimpan jam kedatangan yang dipilih pasien
+            'jadwal_id' => $id_jadwal,
+            'tanggal_kunjungan' => $request->tanggal_kunjungan,
+            'jam_pilihan' => $request->jam_pilihan,
+            'no_antrian' => $noAntrian,
             'keluhan' => $request->keluhan,
-            'status' => 'menunggu'
+            'status' => 'menunggu',
+            'total_bayar' => 0
         ]);
 
-        // LOGIKA PENGINGAT: Hitung estimasi waktu kehadiran (15 menit sebelum jam terpilih)
-        $wajib_hadir = date('H:i', strtotime($request->jam_pilihan . ' -15 minutes'));
-
-        // Redirect kembali ke dashboard dengan pesan sukses berisi instruksi waktu hadir
-        return redirect()->route('user.dashboard')->with('success', 
-            "Berhasil mendaftar! No Antrian Anda: $no_antrian_baru. Mohon hadir di klinik pukul $wajib_hadir untuk verifikasi pendaftaran."
-        );
+        return redirect()->route('user.dashboard')->with('success', 'Berhasil! Antrian Anda: ' . $noAntrian);
     }
 }

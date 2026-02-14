@@ -24,78 +24,84 @@ class DokterController extends Controller
         return view('admin.dokter.create');
     }
 
-    // 3. SIMPAN (USER + DOKTER)
+    // 3. SIMPAN (USER + DOKTER + TARIF)
     public function store(Request $request)
     {
         $request->validate([
             'nama_lengkap' => 'required',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:6',
-            'spesialis' => 'required',
-            'no_telepon' => 'required',
+            'email'        => 'required|email|unique:users,email',
+            'password'     => 'required|min:6',
+            'spesialis'    => 'required',
+            'no_telepon'   => 'required',
+            // [BARU] Validasi Harga Jasa
+            'harga_jasa'   => 'required|numeric|min:0', 
         ]);
 
         DB::transaction(function () use ($request) {
+            // Buat Akun User Login
             $user = User::create([
-                'name' => $request->nama_lengkap,
-                'email' => $request->email,
+                'name'     => $request->nama_lengkap,
+                'email'    => $request->email,
                 'password' => Hash::make($request->password),
-                'role' => 'dokter',
+                'role'     => 'dokter',
             ]);
 
+            // Buat Data Dokter + Tarif
             Dokter::create([
-                'user_id' => $user->id,
+                'user_id'      => $user->id,
                 'nama_lengkap' => $request->nama_lengkap,
-                'spesialis' => $request->spesialis,
-                'no_telepon' => $request->no_telepon,
+                'spesialis'    => $request->spesialis,
+                'no_telepon'   => $request->no_telepon,
+                'harga_jasa'   => $request->harga_jasa, // [BARU] Simpan Harga
             ]);
         });
 
         return redirect()->route('admin.dokter.index')->with('success', 'Dokter berhasil ditambahkan!');
     }
 
-    // 4. FORM EDIT (BARU!)
+    // 4. FORM EDIT
     public function edit($id)
     {
-        // Ambil data dokter beserta data akun user-nya
         $dokter = Dokter::with('user')->findOrFail($id);
         return view('admin.dokter.edit', compact('dokter'));
     }
 
-    // 5. UPDATE DATABASE (BARU!)
+    // 5. UPDATE DATABASE (USER + DOKTER + TARIF)
     public function update(Request $request, $id)
     {
         $dokter = Dokter::findOrFail($id);
 
         $request->validate([
             'nama_lengkap' => 'required',
-            // Cek email unik, tapi KECUALI punya user ini sendiri
-            'email' => 'required|email|unique:users,email,' . $dokter->user_id,
-            'spesialis' => 'required',
-            'no_telepon' => 'required',
+            'email'        => 'required|email|unique:users,email,' . $dokter->user_id,
+            'spesialis'    => 'required',
+            'no_telepon'   => 'required',
+            // [BARU] Validasi Harga Jasa
+            'harga_jasa'   => 'required|numeric|min:0',
         ]);
 
         DB::transaction(function () use ($request, $dokter) {
             // Update Data Akun Login
             if($dokter->user) {
-                $dokter->user->update([
-                    'name' => $request->nama_lengkap,
+                $userData = [
+                    'name'  => $request->nama_lengkap,
                     'email' => $request->email,
-                ]);
+                ];
 
-                // Kalau password diisi, baru kita ganti. Kalau kosong, biarkan password lama.
+                // Cek jika password diganti
                 if($request->filled('password')) {
-                    $dokter->user->update([
-                        'password' => Hash::make($request->password)
-                    ]);
+                    $userData['password'] = Hash::make($request->password);
                 }
+                
+                $dokter->user->update($userData);
             }
 
-            // Update Data Profil Dokter
+            // Update Data Profil Dokter + Tarif
             $dokter->update([
                 'nama_lengkap' => $request->nama_lengkap,
-                'spesialis' => $request->spesialis,
-                'no_telepon' => $request->no_telepon,
+                'spesialis'    => $request->spesialis,
+                'no_telepon'   => $request->no_telepon,
+                'harga_jasa'   => $request->harga_jasa, // [BARU] Update Harga
             ]);
         });
 

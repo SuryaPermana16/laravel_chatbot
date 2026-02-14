@@ -26,6 +26,11 @@
                     </div>
 
                     <div class="mb-4">
+                        <label class="block font-bold mb-1">Tarif Jasa Konsultasi (Rp)</label>
+                        <input type="number" name="harga_jasa" value="{{ old('harga_jasa', $dokter->harga_jasa) }}" class="w-full border rounded p-2" required>
+                    </div>
+
+                    <div class="mb-4">
                         <label class="block font-bold mb-1">No Telepon</label>
                         <input type="text" name="no_telepon" value="{{ $dokter->no_telepon }}" class="w-full border rounded p-2" required>
                     </div>

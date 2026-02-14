@@ -87,6 +87,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('/', 'index')->name('index');
         Route::get('/tambah', 'create')->name('create');
         Route::post('/simpan', 'store')->name('store');
+        
+        // [PERBAIKAN DISINI] ------------------------------
+        // Cukup tulis '/detail/{id}' dan name('show')
+        Route::get('/detail/{id}', 'show')->name('show'); 
+        // -------------------------------------------------
+
         Route::get('/edit/{id}', 'edit')->name('edit');
         Route::put('/update/{id}', 'update')->name('update');
         Route::delete('/hapus/{id}', 'destroy')->name('destroy');
@@ -105,8 +111,15 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Antrean & Laporan
     Route::get('/kunjungan', [KelolaKunjunganController::class, 'index'])->name('kunjungan.index');
     Route::patch('/kunjungan/{id}/status', [KelolaKunjunganController::class, 'updateStatus'])->name('kunjungan.updateStatus');
-    Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
-    Route::post('/laporan/cetak', [LaporanController::class, 'cetak'])->name('laporan.cetak');
+    // --- LAPORAN (UPDATE INI) ---
+    Route::controller(LaporanController::class)->prefix('laporan')->name('laporan.')->group(function () {
+        Route::get('/', 'index')->name('index');           // Halaman Utama Laporan
+        Route::get('/pdf', 'exportPdf')->name('pdf');      // Cetak PDF
+        Route::get('/excel', 'exportExcel')->name('excel'); // Download Excel
+    });
+
+    // Kelola Admin (SESAMA ADMIN)
+    Route::resource('kelola-admin', \App\Http\Controllers\Dashboard\KelolaAdminController::class);
 });
 
 /*
