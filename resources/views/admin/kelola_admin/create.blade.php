@@ -39,9 +39,12 @@
                         </div>
                     </div>
 
-                    <div class="mt-6">
-                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 font-bold w-full sm:w-auto">
-                            Simpan Admin
+                    <div class="mt-6 flex items-center gap-3">
+                        <a href="{{ route('admin.kelola-admin.index') }}" class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 font-bold">
+                            <i class="fas fa-arrow-left mr-1"></i> Kembali
+                        </a>
+                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 font-bold">
+                            <i class="fas fa-save mr-1"></i> Simpan Admin
                         </button>
                     </div>
                 </form>

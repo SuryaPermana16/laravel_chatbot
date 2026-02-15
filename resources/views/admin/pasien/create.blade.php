@@ -1,5 +1,7 @@
 <x-app-layout>
-    <x-slot name="header"><h2 class="font-semibold text-xl text-gray-800 leading-tight">Pendaftaran Pasien Baru</h2></x-slot>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Pendaftaran Pasien Baru</h2>
+    </x-slot>
 
     <style>
         input::-ms-reveal, input::-ms-clear { display: none; }
@@ -64,12 +66,32 @@
                         </div>
                     </div>
 
-                    <div class="flex justify-end gap-2">
-                        <a href="{{ route('admin.pasien.index') }}" class="bg-gray-500 text-white px-4 py-2 rounded">Batal</a>
-                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Simpan Data</button>
+                    <div class="mt-6 flex items-center gap-3">
+                        <a href="{{ route('admin.pasien.index') }}" class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 font-bold">
+                            <i class="fas fa-arrow-left mr-1"></i> Kembali
+                        </a>
+                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 font-bold">
+                            <i class="fas fa-save mr-1"></i> Simpan Pasien
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <script>
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = "password";
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
 </x-app-layout>

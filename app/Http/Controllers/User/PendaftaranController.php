@@ -7,6 +7,8 @@ use App\Models\JadwalDokter;
 use App\Models\Kunjungan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail; // <--- Import Mail
+use App\Mail\NotifikasiAntrian;      // <--- Import Class Mail
 use Carbon\Carbon;
 
 class PendaftaranController extends Controller
@@ -112,8 +114,9 @@ class PendaftaranController extends Controller
         
         $noAntrian = 'A-' . str_pad($urutan, 3, '0', STR_PAD_LEFT);
 
-        Kunjungan::create([
-            'id_pasien' => $pasien->id,
+        // SIMPAN KE DATABASE
+        $kunjungan = Kunjungan::create([
+            'pasien_id' => $pasien->id,
             'dokter_id' => $jadwal->dokter_id,
             'jadwal_id' => $id_jadwal,
             'tanggal_kunjungan' => $request->tanggal_kunjungan,
@@ -124,6 +127,14 @@ class PendaftaranController extends Controller
             'total_bayar' => 0
         ]);
 
-        return redirect()->route('user.dashboard')->with('success', 'Berhasil! Antrian Anda: ' . $noAntrian);
+        // --- KIRIM EMAIL NOTIFIKASI ---
+        try {
+            Mail::to(Auth::user()->email)->send(new NotifikasiAntrian($kunjungan));
+        } catch (\Exception $e) {
+            // Log error jika email gagal, tapi jangan hentikan proses pendaftaran
+            \Illuminate\Support\Facades\Log::error("Gagal kirim email: " . $e->getMessage());
+        }
+
+        return redirect()->route('user.dashboard')->with('success', 'Berhasil! Nomor Antrian Anda: ' . $noAntrian . '. Cek Email untuk tiket.');
     }
 }

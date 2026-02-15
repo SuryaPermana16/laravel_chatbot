@@ -36,12 +36,15 @@ class Kunjungan extends Model
         return $this->belongsTo(Dokter::class);
     }
 
-    // --- TAMBAHAN PENTING ---
-    // Relasi Many-to-Many ke Obat melalui tabel pivot
     public function obat()
     {
         return $this->belongsToMany(Obat::class, 'kunjungan_obat')
                     ->withPivot('jumlah', 'harga_satuan', 'subtotal')
                     ->withTimestamps();
+    }
+
+    public function rekamMedis()
+    {
+        return $this->hasOne(RekamMedis::class, 'kunjungan_id');
     }
 }

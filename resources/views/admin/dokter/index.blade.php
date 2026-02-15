@@ -5,6 +5,8 @@
         </h2>
     </x-slot>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
@@ -15,9 +17,15 @@
             </div>
 
             @if(session('success'))
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4 shadow-sm">
-                <span class="block sm:inline font-bold"><i class="fas fa-check-circle mr-2"></i>{{ session('success') }}</span>
-            </div>
+            <script>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: "{{ session('success') }}",
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+            </script>
             @endif
 
             <div class="flex justify-between items-center mb-4">
@@ -54,10 +62,12 @@
                                 <td class="px-4 py-2 text-center">
                                     <a href="{{ route('admin.dokter.edit', $dokter->id) }}" class="text-yellow-500 hover:text-yellow-700 font-bold mx-2">Edit</a>
 
-                                    <form action="{{ route('admin.dokter.destroy', $dokter->id) }}" method="POST" class="delete-form inline-block" onsubmit="return confirm('Yakin ingin menghapus dokter ini?');">
+                                    <form action="{{ route('admin.dokter.destroy', $dokter->id) }}" method="POST" id="delete-form-{{ $dokter->id }}" class="inline-block">
                                         @csrf 
                                         @method('DELETE')
-                                        <button type="submit" class="text-red-500 hover:text-red-700 font-bold mx-2">Hapus</button>
+                                        <button type="button" onclick="konfirmasiHapus('{{ $dokter->id }}', '{{ $dokter->nama_lengkap }}')" class="text-red-500 hover:text-red-700 font-bold mx-2">
+                                            Hapus
+                                        </button>
                                     </form>
                                 </td>
                             </tr>
@@ -68,4 +78,25 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function konfirmasiHapus(id, nama) {
+            Swal.fire({
+                title: 'Hapus Data Dokter?',
+                text: "Dokter " + nama + " akan dihapus permanen!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444', // Merah
+                cancelButtonColor: '#3b82f6',  // Biru
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Kirim form jika user klik Ya
+                    document.getElementById('delete-form-' + id).submit();
+                }
+            })
+        }
+    </script>
 </x-app-layout>

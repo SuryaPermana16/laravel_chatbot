@@ -5,6 +5,8 @@
         </h2>
     </x-slot>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
@@ -52,10 +54,10 @@
                                     <a href="{{ route('admin.kelola-admin.edit', $admin->id) }}" class="text-yellow-500 hover:text-yellow-700 font-bold mx-2">Edit</a>
                                     
                                     @if(Auth::id() != $admin->id)
-                                    <form action="{{ route('admin.kelola-admin.destroy', $admin->id) }}" method="POST" class="delete-form inline-block" onsubmit="return confirm('Yakin ingin menghapus admin ini?');">
+                                    <form action="{{ route('admin.kelola-admin.destroy', $admin->id) }}" method="POST" id="delete-form-{{ $admin->id }}" class="inline-block">
                                         @csrf 
                                         @method('DELETE')
-                                        <button type="submit" class="text-red-500 hover:text-red-700 font-bold mx-2">Hapus</button>
+                                        <button type="button" onclick="hapusAdmin('{{ $admin->id }}')" class="text-red-500 hover:text-red-700 font-bold mx-2">Hapus</button>
                                     </form>
                                     @endif
                                 </td>
@@ -67,4 +69,25 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function hapusAdmin(id) {
+            Swal.fire({
+                title: 'Yakin mau hapus?',
+                text: "Data yang dihapus tidak bisa dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444', // Warna merah tailwind
+                cancelButtonColor: '#3b82f6',  // Warna biru tailwind
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Jika user klik Ya, form dikirim otomatis lewat JS
+                    document.getElementById('delete-form-' + id).submit();
+                }
+            })
+        }
+    </script>
 </x-app-layout>

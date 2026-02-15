@@ -9,13 +9,6 @@
 
     <div class="py-12">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-            
-            <div class="mb-4">
-                <a href="{{ route('admin.apoteker.index') }}" class="inline-flex items-center text-gray-500 hover:text-green-600 font-bold transition">
-                    <i class="fas fa-arrow-left mr-2"></i> Kembali ke Data Apoteker
-                </a>
-            </div>
-
             <div class="bg-white p-6 shadow-sm sm:rounded-lg">
                 <form action="{{ route('admin.apoteker.store') }}" method="POST">
                     @csrf
@@ -50,6 +43,7 @@
                                    class="w-full border rounded p-2" 
                                    style="padding-right: 40px;" 
                                    required>
+                            
                             <span onclick="togglePassword('passApotekerCreate', 'iconApotekerCreate')" 
                                   style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #6b7280; z-index: 10;">
                                 <i id="iconApotekerCreate" class="fas fa-eye"></i>
@@ -57,7 +51,14 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Simpan Apoteker</button>
+                    <div class="mt-6 flex items-center gap-3">
+                        <a href="{{ route('admin.apoteker.index') }}" class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 font-bold">
+                            <i class="fas fa-arrow-left mr-1"></i> Kembali
+                        </a>
+                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 font-bold">
+                            <i class="fas fa-save mr-1"></i> Simpan Apoteker
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -65,8 +66,8 @@
     
     <script>
         function togglePassword(inputId, iconId) {
-            var input = document.getElementById(inputId);
-            var icon = document.getElementById(iconId);
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
             if (input.type === "password") {
                 input.type = "text";
                 icon.classList.remove('fa-eye');

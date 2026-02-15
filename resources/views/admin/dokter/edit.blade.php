@@ -59,13 +59,33 @@
                         <p class="text-xs text-gray-400 mt-1">*Isi hanya jika ingin mereset password dokter ini.</p>
                     </div>
 
-                    <div class="flex justify-between">
-                        <button type="submit" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Update Dokter</button>
-                        <a href="{{ route('admin.dokter.index') }}" class="text-gray-500 px-4 py-2">Batal</a>
+                    <div class="mt-6 flex items-center gap-3">
+                        <a href="{{ route('admin.dokter.index') }}" class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 font-bold">
+                            <i class="fas fa-arrow-left mr-1"></i> Kembali
+                        </a>
+                        <button type="submit" class="bg-yellow-500 text-white px-6 py-2 rounded hover:bg-yellow-600 font-bold">
+                            <i class="fas fa-save mr-1"></i> Update Data Dokter
+                        </button>
                     </div>
                 </form>
 
             </div>
         </div>
     </div>
+
+    <script>
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("fa-eye");
+                icon.classList.add("fa-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");
+            }
+        }
+    </script>
 </x-app-layout>

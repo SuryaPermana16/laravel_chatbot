@@ -41,9 +41,13 @@
                         <p class="text-xs text-gray-400 mt-1">*Isi hanya jika ingin mereset password admin ini.</p>
                     </div>
 
-                    <div class="flex justify-between mt-6">
-                        <button type="submit" class="bg-yellow-500 text-white px-6 py-2 rounded hover:bg-yellow-600 font-bold">Update Admin</button>
-                        <a href="{{ route('admin.kelola-admin.index') }}" class="text-gray-500 px-4 py-2 hover:text-gray-700">Batal</a>
+                    <div class="mt-6 flex items-center gap-3">
+                        <a href="{{ route('admin.kelola-admin.index') }}" class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 font-bold">
+                            <i class="fas fa-arrow-left mr-1"></i> Kembali
+                        </a>
+                        <button type="submit" class="bg-yellow-500 text-white px-6 py-2 rounded hover:bg-yellow-600 font-bold">
+                            <i class="fas fa-save mr-1"></i> Update Admin
+                        </button>
                     </div>
                 </form>
 

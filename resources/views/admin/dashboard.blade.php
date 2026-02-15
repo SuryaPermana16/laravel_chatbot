@@ -8,14 +8,14 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6 border border-gray-100">
                 <div class="p-6 text-gray-900 flex justify-between items-center">
                     <div>
                         <h3 class="text-lg font-bold">Selamat Datang, Administrator! 👋</h3>
                         <p class="text-gray-600">Berikut adalah laporan ringkas kondisi klinik hari ini.</p>
                     </div>
-                    <div class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                        <i class="far fa-calendar-alt mr-1"></i> {{ now()->format('l, d F Y') }}
+                    <div class="text-sm text-blue-800 bg-blue-100 px-4 py-2 rounded-full font-bold shadow-sm">
+                        <i class="far fa-calendar-alt mr-2 text-blue-600"></i> {{ now()->translatedFormat('l, d F Y') }}
                     </div>
                 </div>
             </div>

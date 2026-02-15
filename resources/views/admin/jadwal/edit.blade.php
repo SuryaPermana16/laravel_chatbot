@@ -1,5 +1,7 @@
 <x-app-layout>
-    <x-slot name="header"><h2 class="font-semibold text-xl text-gray-800 leading-tight">Edit Jadwal Dokter</h2></x-slot>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Edit Jadwal Dokter</h2>
+    </x-slot>
 
     <div class="py-12">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
@@ -39,9 +41,13 @@
                         </div>
                     </div>
 
-                    <div class="flex justify-end gap-2 mt-6">
-                        <a href="{{ route('admin.jadwal.index') }}" class="bg-gray-500 text-white px-4 py-2 rounded">Batal</a>
-                        <button type="submit" class="bg-yellow-500 text-white px-4 py-2 rounded">Update Jadwal</button>
+                    <div class="mt-6 flex items-center gap-3">
+                        <a href="{{ route('admin.jadwal.index') }}" class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 font-bold">
+                            <i class="fas fa-arrow-left mr-1"></i> Kembali
+                        </a>
+                        <button type="submit" class="bg-yellow-500 text-white px-6 py-2 rounded hover:bg-yellow-600 font-bold">
+                            <i class="fas fa-save mr-1"></i> Update Jadwal
+                        </button>
                     </div>
                 </form>
             </div>
