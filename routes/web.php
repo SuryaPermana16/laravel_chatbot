@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Api\ChatbotController;
 
 // Import Controller Dashboard per Role
 use App\Http\Controllers\Dashboard\AdminController;
@@ -27,7 +28,6 @@ use App\Http\Controllers\Apoteker\DashboardController as ApotekerDashboard;
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () { return view('welcome'); });
-Route::get('/chatbot', function () { return view('chatbot'); });
 
 /*
 |--------------------------------------------------------------------------
@@ -129,6 +129,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 */
 Route::middleware(['auth'])->prefix('dokter')->name('dokter.')->group(function () {
     Route::get('/dashboard', [DokterDashboard::class, 'index'])->name('dashboard');
+    Route::get('/api/count-pasien', [DokterDashboard::class, 'getCountPasien'])->name('api.count');
     Route::get('/periksa/{id}', [PeriksaController::class, 'periksa'])->name('periksa');
     Route::post('/periksa/{id}', [PeriksaController::class, 'simpanPeriksa'])->name('periksa.simpan');
 });
@@ -166,6 +167,7 @@ Route::middleware(['auth', 'verified'])->prefix('user')->name('user.')->group(fu
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
+    Route::post('/chatbot/send', [ChatbotController::class, 'handleChat'])->name('chatbot.send');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

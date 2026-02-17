@@ -10,73 +10,61 @@ use App\Models\JadwalDokter;
 
 class ChatbotController extends Controller
 {
-    public function chat(Request $request)
+    public function handleChat(Request $request)
     {
-        $query = strtolower($request->input('message'));
+        try {
+            $query = strtolower($request->input('message', ''));
+            if (!$query) return response()->json(['reply' => 'Ada yang bisa saya bantu?']);
 
-        if (!$query) {
-            return response()->json(['status' => 'error', 'reply' => 'Mau nanya apa nih?']);
-        }
-
-        // ==========================================
-        // LOGIKA 1: CEK STOK OBAT (LEBIH PINTAR)
-        // ==========================================
-        if (str_contains($query, 'obat') || str_contains($query, 'stok') || str_contains($query, 'harga')) {
-            // Ambil semua obat di database
-            $semua_obat = Obat::all();
-            
-            foreach ($semua_obat as $obat) {
-                // Kita pecah nama obat. Misal "Parasetamol 500mg" jadi cuma "parasetamol"
-                $kata_kunci_obat = strtolower(explode(' ', $obat->nama_obat)[0]);
-
-                // Cek apakah kata "parasetamol" ada di pertanyaan user?
-                if (str_contains($query, $kata_kunci_obat)) {
-                    return response()->json([
-                        'status' => 'success',
-                        'reply' => "Stok {$obat->nama_obat} saat ini ada {$obat->stok} {$obat->satuan}. Harganya Rp " . number_format($obat->harga)
-                    ]);
+            // --- 1. LOGIKA CEK STOK OBAT (DIPERINTAR) ---
+            if (str_contains($query, 'obat') || str_contains($query, 'stok') || str_contains($query, 'harga')) {
+                // Ambil semua obat
+                $semua_obat = Obat::all();
+                foreach ($semua_obat as $obat) {
+                    $namaObatDb = strtolower($obat->nama_obat);
+                    
+                    // Cek apakah nama obat di DB ada di dalam pertanyaan user
+                    // Atau sebaliknya (misal user nanya 'parasetamol' tapi di DB 'parasetamol 500mg')
+                    if (str_contains($query, $namaObatDb) || str_contains($namaObatDb, $query)) {
+                        return response()->json([
+                            'reply' => "💊 Stok <b>{$obat->nama_obat}</b>: {$obat->stok} {$obat->satuan}. <br>Harga: <b>Rp " . number_format($obat->harga, 0, ',', '.') . "</b>"
+                        ]);
+                    }
                 }
             }
-        }
 
-        // ==========================================
-        // LOGIKA 2: CEK JADWAL DOKTER
-        // ==========================================
-        if (str_contains($query, 'jadwal') || str_contains($query, 'dokter') || str_contains($query, 'praktek')) {
-            $jadwal = JadwalDokter::with('dokter')->get();
-            
-            if ($jadwal->isEmpty()) {
-                return response()->json(['status' => 'success', 'reply' => 'Belum ada jadwal dokter yang tersedia.']);
+            // --- 2. LOGIKA CEK JADWAL DOKTER ---
+            if (str_contains($query, 'jadwal') || str_contains($query, 'dokter')) {
+                $jadwal = JadwalDokter::with('dokter')->get();
+                if ($jadwal->count() > 0) {
+                    $text = "📅 <b>Jadwal Dokter Kami:</b><br>";
+                    foreach($jadwal as $j) {
+                        $namaD = $j->dokter->nama_lengkap ?? 'Dokter';
+                        $text .= "• <b>{$namaD}</b>: {$j->hari} (".substr($j->jam_mulai,0,5)."-".substr($j->jam_selesai,0,5).")<br>";
+                    }
+                    return response()->json(['reply' => $text]);
+                }
             }
 
-            $text = "Berikut jadwal dokter kami:\n";
-            foreach($jadwal as $j) {
-                $text .= "- " . $j->dokter->nama_lengkap . " (" . $j->hari . ", " . substr($j->jam_mulai, 0, 5) . "-" . substr($j->jam_selesai, 0, 5) . ")\n";
+            // --- 3. KNOWLEDGE BASE (FAQ) ---
+            $kb = KnowledgeBase::where('is_active', true)->get();
+            foreach ($kb as $item) {
+                $kat = strtolower($item->kategori);
+                $tanya = strtolower($item->pertanyaan);
+                
+                // Cek apakah kata kunci ada di kategori atau pertanyaan
+                if (str_contains($query, $kat) || str_contains($query, $tanya) || str_contains($tanya, $query)) {
+                     return response()->json(['reply' => $item->jawaban]);
+                }
             }
-            
-            return response()->json(['status' => 'success', 'reply' => $text]);
-        }
 
-        // ==========================================
-        // LOGIKA 3: KNOWLEDGE BASE (SOP)
-        // ==========================================
-        $kb = KnowledgeBase::all();
-        foreach ($kb as $item) {
-            // Cek apakah pertanyaan user mirip dengan database
-            if (str_contains($query, strtolower($item->kategori)) || str_contains(strtolower($item->pertanyaan), $query)) {
-                 return response()->json([
-                    'status' => 'success',
-                    'reply' => $item->jawaban
-                ]);
-            }
-        }
+            // JAWABAN DEFAULT
+            return response()->json([
+                'reply' => 'Maaf Kak, saya belum paham. 🤔<br>Coba tanya: <b>"Stok Obat"</b>, atau <b>"Jadwal Dokter"</b>.'
+            ]);
 
-        // ==========================================
-        // JIKA TIDAK MENGERTI
-        // ==========================================
-        return response()->json([
-            'status' => 'success',
-            'reply' => 'Maaf, saya belum mengerti. Coba tanya: "Stok Parasetamol", "Jadwal Dokter", atau "Syarat BPJS".'
-        ]);
+        } catch (\Exception $e) {
+            return response()->json(['reply' => '⚠️ Kendala sistem: ' . $e->getMessage()]);
+        }
     }
 }
