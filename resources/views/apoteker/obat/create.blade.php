@@ -1,56 +1,80 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Tambah Obat Baru') }}
+            <i class="fas fa-plus-circle mr-2 text-teal-600"></i> {{ __('Tambah Obat Baru') }}
         </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-
-                    <form action="{{ route('apoteker.obat.store') }}" method="POST">
-                        @csrf 
-                        
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">Nama Obat</label>
-                            <input type="text" name="nama_obat" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Contoh: Parasetamol 500mg" required>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">Harga (Rp)</label>
-                            <input type="number" name="harga" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Contoh: 5000" required>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">Stok Awal</label>
-                            <input type="number" name="stok" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Contoh: 100" required>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">Satuan</label>
-                            <select name="satuan" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                                <option value="Strip">Strip</option>
-                                <option value="Botol">Botol</option>
-                                <option value="Tablet">Tablet</option>
-                                <option value="Kapsul">Kapsul</option>
-                                <option value="Pcs">Pcs</option>
-                                <option value="Box">Box</option>
-                            </select>
-                        </div>
-
-                        <div class="flex items-center justify-between mt-6">
-                            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                                Simpan Obat
-                            </button>
-                            <a href="{{ route('apoteker.obat.index') }}" class="text-gray-500 hover:text-gray-700 font-bold py-2 px-4">
-                                Batal
-                            </a>
-                        </div>
-                    </form>
-
+    <div class="py-12 bg-slate-50 min-h-screen">
+        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white p-8 sm:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:rounded-[2rem] border border-gray-100">
+                
+                <div class="mb-8 border-b border-gray-100 pb-4">
+                    <h3 class="text-2xl font-extrabold text-gray-900">Formulir Pendaftaran Obat</h3>
+                    <p class="text-gray-500 text-sm mt-1">Masukkan detail stok dan harga obat ke dalam sistem farmasi.</p>
                 </div>
+
+                <form action="{{ route('apoteker.obat.store') }}" method="POST" class="space-y-6">
+                    @csrf 
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Nama Obat</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <i class="fas fa-pills text-gray-400"></i>
+                                </div>
+                                <input type="text" name="nama_obat" required placeholder="Contoh: Amoxicillin 500mg" class="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 outline-none transition text-gray-700 bg-slate-50 focus:bg-white">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Harga Jual (Rp)</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 font-bold">
+                                    Rp
+                                </div>
+                                <input type="number" name="harga" required placeholder="5000" class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 outline-none transition text-gray-700 bg-slate-50 focus:bg-white">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Stok Awal</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <i class="fas fa-boxes text-gray-400"></i>
+                                </div>
+                                <input type="number" name="stok" required placeholder="100" class="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 outline-none transition text-gray-700 bg-slate-50 focus:bg-white">
+                            </div>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Satuan Kemasan</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <i class="fas fa-box-open text-gray-400"></i>
+                                </div>
+                                <select name="satuan" required class="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 outline-none transition text-gray-700 bg-slate-50 focus:bg-white appearance-none">
+                                    <option value="Strip">Strip</option>
+                                    <option value="Botol">Botol</option>
+                                    <option value="Tablet">Tablet</option>
+                                    <option value="Kapsul">Kapsul</option>
+                                    <option value="Pcs">Pcs</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-gray-100 flex flex-col-reverse sm:flex-row items-center gap-3 justify-end">
+                        <a href="{{ route('apoteker.obat.index') }}" class="w-full sm:w-auto text-center bg-white border-2 border-slate-200 text-slate-600 px-6 py-3 rounded-xl hover:bg-slate-50 hover:text-slate-800 font-bold transition">
+                            Batal
+                        </a>
+                        <button type="submit" class="w-full sm:w-auto bg-teal-600 text-white px-8 py-3 rounded-xl hover:bg-teal-700 font-bold shadow-lg shadow-teal-200 transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                            <i class="fas fa-save"></i> Simpan Obat
+                        </button>
+                    </div>
+                </form>
+
             </div>
         </div>
     </div>

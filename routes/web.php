@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Models\Dokter;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Api\ChatbotController;
@@ -27,7 +28,15 @@ use App\Http\Controllers\Apoteker\DashboardController as ApotekerDashboard;
 | 1. HALAMAN PUBLIK
 |--------------------------------------------------------------------------
 */
-Route::get('/', function () { return view('welcome'); });
+Route::get('/', function () {
+    // 1. Ambil maksimal 4 dokter terbaru untuk ditampilkan
+    $dokters = Dokter::latest()->take(4)->get();
+
+    // 2. Ambil daftar layanan (mengambil daftar 'spesialis' unik dari tabel dokter)
+    $layanans = Dokter::select('spesialis')->distinct()->get();
+
+    return view('welcome', compact('dokters', 'layanans'));
+});
 
 /*
 |--------------------------------------------------------------------------
