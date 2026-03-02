@@ -11,52 +11,40 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
-    /**
-     * Display the login view.
-     */
     public function create(): View
     {
         return view('auth.login');
     }
 
-    /**
-     * Handle an incoming authentication request.
-     */
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
-
         $request->session()->regenerate();
 
-        // 1. Cek role user yang baru login
         $role = $request->user()->role; 
+        $name = $request->user()->name;
 
-        // 2. Arahkan ke dashboard masing-masing sesuai role
+        // Tambahkan pesan sukses login di setiap redirect
         if ($role === 'admin') {
-            return redirect()->route('admin.dashboard');
+            return redirect()->route('admin.dashboard')
+                ->with('login_success', "Selamat Datang Kembali, Admin $name! 👋");
         } elseif ($role === 'dokter') {
-            return redirect()->route('dokter.dashboard');
+            return redirect()->route('dokter.dashboard')
+                ->with('login_success', "Selamat Datang Kembali, Dr. $name! 👨‍⚕️");
         } elseif ($role === 'apoteker') {
-            return redirect()->route('apoteker.dashboard'); 
+            return redirect()->route('apoteker.dashboard')
+                ->with('login_success', "Selamat Datang Kembali, Apoteker $name! 💊");
         }
 
-        // 3. Default redirect untuk pasien/user biasa
-        // (Jika terjadi error Route [user.dashboard] not defined, 
-        // ubah menjadi return redirect()->route('dashboard'); sesuai bawaan awal)
-        return redirect()->route('user.dashboard'); 
+        return redirect()->route('user.dashboard')
+            ->with('login_success', "Halo $name, selamat datang di portal kesehatan Anda! ✨"); 
     }
 
-    /**
-     * Destroy an authenticated session.
-     */
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
-
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
-
         return redirect('/');
     }
 }

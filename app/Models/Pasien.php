@@ -9,22 +9,23 @@ class Pasien extends Model
 {
     use HasFactory;
 
-    // Nama tabel di database (opsional jika sudah jamak, tapi biar yakin)
     protected $table = 'pasiens';
 
-    // DAFTAR KOLOM YANG BOLEH DIISI (WAJIB LENGKAP)
     protected $fillable = [
-        'user_id',
-        'nama_lengkap',
-        'jenis_kelamin', // Tadi mungkin ini lupa
-        'tanggal_lahir', // Tadi mungkin ini lupa
-        'alamat',
-        'no_telepon',
+        'user_id', 'no_rm', 'nama_lengkap', 'jenis_kelamin', 'tanggal_lahir', 'alamat', 'no_telepon',
     ];
 
-    // Relasi ke User
-    public function user()
+    // LOGIKA NOMOR RM OTOMATIS
+    public static function generateNoRM()
     {
-        return $this->belongsTo(User::class);
+        $lastPasien = self::latest('id')->first();
+        if (!$lastPasien || !$lastPasien->no_rm) {
+            return 'RM-00001';
+        }
+        $lastNumber = (int) substr($lastPasien->no_rm, 3);
+        $nextNumber = $lastNumber + 1;
+        return 'RM-' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
     }
+
+    public function user() { return $this->belongsTo(User::class); }
 }

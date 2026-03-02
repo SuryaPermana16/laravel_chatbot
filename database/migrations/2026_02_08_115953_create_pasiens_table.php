@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             
             $table->enum('jenis_kelamin', ['L', 'P'])->nullable(); 
+            $table->string('no_rm')->nullable()->unique();
             $table->date('tanggal_lahir')->nullable();
             $table->string('nama_lengkap');
             $table->text('alamat')->nullable();       

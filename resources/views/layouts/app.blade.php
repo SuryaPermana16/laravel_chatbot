@@ -8,7 +8,7 @@
         <title>{{ config('app.name', 'Laravel') }}</title>
 
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -35,7 +35,7 @@
             input::-ms-reveal, input::-ms-clear { display: none; }
         </style>
     </head>
-    <body class="font-sans antialiased">
+    <body class="font-sans antialiased text-slate-900">
         <div class="min-h-screen bg-slate-50">
             @include('layouts.navigation')
 
@@ -47,7 +47,7 @@
         @if(Auth::check() && in_array(Auth::user()->role, ['admin', 'dokter', 'apoteker']))
             
             <div id="chat-button" onclick="toggleChatWindow()" 
-                 class="fixed bottom-8 right-8 z-[999999] bg-gradient-to-br from-blue-600 to-indigo-700 text-white px-6 py-4 rounded-full cursor-pointer shadow-2xl shadow-blue-500/40 flex items-center gap-3 border-2 border-white transition-all duration-300 hover:scale-105 active:scale-95 group">
+                 class="fixed bottom-8 right-8 z-[9999] bg-gradient-to-br from-blue-600 to-indigo-700 text-white px-6 py-4 rounded-full cursor-pointer shadow-2xl shadow-blue-500/40 flex items-center gap-3 border-2 border-white transition-all duration-300 hover:scale-105 active:scale-95 group">
                 <div class="relative">
                     <i class="fas fa-robot text-xl"></i>
                     <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-400 border-2 border-white rounded-full"></span>
@@ -56,7 +56,7 @@
             </div>
 
             <div id="chat-window" 
-                 class="hidden fixed bottom-24 right-8 z-[999999] w-[380px] h-[550px] bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-white flex-col overflow-hidden transition-all duration-300 transform scale-95 opacity-0">
+                 class="hidden fixed bottom-24 right-8 z-[9999] w-[380px] h-[550px] bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-white flex-col overflow-hidden transition-all duration-300 transform scale-95 opacity-0">
                 
                 <div class="bg-gradient-to-r from-blue-700 to-indigo-600 p-5 text-white flex justify-between items-center relative overflow-hidden">
                     <i class="fas fa-heartbeat absolute -right-4 -top-4 text-6xl opacity-10"></i>
@@ -98,114 +98,78 @@
                     <p class="text-center text-[9px] text-slate-400 mt-3 font-bold uppercase tracking-tighter opacity-60">Powered by RAG AI Technology</p>
                 </div>
             </div>
-
-            <script>
-                function toggleChatWindow() {
-                    const win = document.getElementById('chat-window');
-                    if (win.classList.contains('hidden')) {
-                        win.classList.remove('hidden');
-                        setTimeout(() => {
-                            win.classList.remove('scale-95', 'opacity-0');
-                            win.classList.add('scale-100', 'opacity-100', 'flex');
-                        }, 10);
-                    } else {
-                        win.classList.add('scale-95', 'opacity-0');
-                        setTimeout(() => {
-                            win.classList.add('hidden');
-                            win.classList.remove('flex', 'scale-100', 'opacity-100');
-                        }, 300);
-                    }
-                }
-
-                function kirimPesanChat(event) {
-                    event.preventDefault();
-                    const input = document.getElementById('chat-input');
-                    const msg = input.value.trim();
-                    if(!msg) return;
-
-                    renderBalon('user', msg);
-                    input.value = '';
-                    renderBalon('ai', '', true);
-
-                    fetch("{{ route('chatbot.send') }}", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": "{{ csrf_token() }}" },
-                        body: JSON.stringify({ message: msg })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        hapusLoading();
-                        renderBalon('ai', data.reply);
-                    })
-                    .catch(e => {
-                        hapusLoading();
-                        renderBalon('ai', '⚠️ <span class="text-red-500 font-bold">Error:</span> Gagal terhubung ke server AI.');
-                    });
-                }
-
-                function renderBalon(sender, text, isLoad = false) {
-                    const container = document.getElementById('chat-messages');
-                    const divWrap = document.createElement('div');
-                    
-                    if(isLoad) {
-                        divWrap.id = 'chat-loading';
-                        divWrap.className = "flex flex-col items-start msg-anim";
-                        divWrap.innerHTML = `
-                            <div class="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 flex gap-1">
-                                <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
-                            </div>`;
-                    } else {
-                        if (sender === 'user') {
-                            divWrap.className = "flex flex-col items-end msg-anim";
-                            divWrap.innerHTML = `
-                                <div class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-3.5 rounded-2xl rounded-tr-none shadow-md max-w-[85%] text-sm leading-relaxed border border-blue-500/20">
-                                    ${text.replace(/\n/g, '<br>')}
-                                </div>`;
-                        } else {
-                            divWrap.className = "flex flex-col items-start msg-anim";
-                            divWrap.innerHTML = `
-                                <span class="text-[9px] font-black text-slate-400 ml-1 mb-1 uppercase tracking-widest">Asisten AI</span>
-                                <div class="bg-white text-slate-700 p-3.5 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 max-w-[85%] text-sm leading-relaxed">
-                                    ${text.replace(/\n/g, '<br>')}
-                                </div>`;
-                        }
-                    }
-                    
-                    container.appendChild(divWrap);
-                    container.scrollTop = container.scrollHeight;
-                }
-
-                function hapusLoading() {
-                    const el = document.getElementById('chat-loading');
-                    if(el) el.remove();
-                }
-            </script>
         @endif
 
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
         <script>
-            @if(session('success')) Swal.fire({ icon: 'success', title: 'BERHASIL!', text: "{{ session('success') }}", showConfirmButton: false, timer: 2000, customClass: { popup: 'rounded-[2rem]' } }); @endif
-            @if(session('error')) Swal.fire({ icon: 'error', title: 'GAGAL!', text: "{{ session('error') }}", customClass: { popup: 'rounded-[2rem]' } }); @endif
-            
+            /** 1. POPUP LOGIN SUCCESS (TOAST) **/
+            @if(session('login_success'))
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 4000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer)
+                        toast.addEventListener('mouseleave', Swal.resumeTimer)
+                    }
+                });
+
+                Toast.fire({
+                    icon: 'success',
+                    title: "{{ session('login_success') }}"
+                });
+            @endif
+
+            /** 2. POPUP SUCCESS & ERROR UMUM **/
+            @if(session('success')) 
+                Swal.fire({ 
+                    icon: 'success', 
+                    title: 'BERHASIL!', 
+                    text: "{{ session('success') }}", 
+                    showConfirmButton: false, 
+                    timer: 2500, 
+                    customClass: { popup: 'rounded-[2rem]' } 
+                }); 
+            @endif
+
+            @if(session('error')) 
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: 'GAGAL!', 
+                    text: "{{ session('error') }}", 
+                    customClass: { popup: 'rounded-[2rem]' } 
+                }); 
+            @endif
+
+            /** 3. KONFIRMASI HAPUS DATA **/
             document.addEventListener('DOMContentLoaded', function() {
                 const deleteForms = document.querySelectorAll('.delete-form');
                 deleteForms.forEach(form => {
                     form.addEventListener('submit', function(e) {
                         e.preventDefault();
                         Swal.fire({ 
-                            title: 'Yakin hapus?', 
-                            text: "Data akan hilang permanen!", 
+                            title: 'Yakin ingin menghapus?', 
+                            text: "Data yang dihapus tidak bisa dikembalikan!", 
                             icon: 'warning', 
                             showCancelButton: true, 
-                            confirmButtonColor: '#ef4444', 
+                            confirmButtonColor: '#2563eb', 
                             cancelButtonColor: '#64748b', 
                             confirmButtonText: 'Ya, Hapus!',
-                            customClass: { popup: 'rounded-[2rem]', confirmButton: 'rounded-xl', cancelButton: 'rounded-xl' }
+                            cancelButtonText: 'Batal',
+                            customClass: { 
+                                popup: 'rounded-[2rem]', 
+                                confirmButton: 'rounded-xl font-bold', 
+                                cancelButton: 'rounded-xl font-bold' 
+                            }
                         }).then((res) => { if (res.isConfirmed) form.submit(); });
                     });
                 });
             });
 
+            /** 4. PASSWORD TOGGLE **/
             function togglePassword(inputId, iconId) {
                 const input = document.getElementById(inputId); 
                 const icon = document.getElementById(iconId);
@@ -216,6 +180,91 @@
                     input.type = "password"; 
                     icon.classList.replace("fa-eye-slash", "fa-eye"); 
                 }
+            }
+
+            /** 5. CHAT AI TOGGLE **/
+            function toggleChatWindow() {
+                const win = document.getElementById('chat-window');
+                if (!win) return;
+                if (win.classList.contains('hidden')) {
+                    win.classList.remove('hidden');
+                    setTimeout(() => {
+                        win.classList.remove('scale-95', 'opacity-0');
+                        win.classList.add('scale-100', 'opacity-100', 'flex');
+                    }, 10);
+                } else {
+                    win.classList.add('scale-95', 'opacity-0');
+                    setTimeout(() => {
+                        win.classList.add('hidden');
+                        win.classList.remove('flex', 'scale-100', 'opacity-100');
+                    }, 300);
+                }
+            }
+
+            /** 6. LOGIC CHATBOT AI **/
+            function kirimPesanChat(event) {
+                event.preventDefault();
+                const input = document.getElementById('chat-input');
+                const msg = input.value.trim();
+                if(!msg) return;
+
+                renderBalon('user', msg);
+                input.value = '';
+                renderBalon('ai', '', true);
+
+                fetch("{{ route('chatbot.send') }}", {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json", 
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}" 
+                    },
+                    body: JSON.stringify({ message: msg })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    hapusLoading();
+                    renderBalon('ai', data.reply);
+                })
+                .catch(e => {
+                    hapusLoading();
+                    renderBalon('ai', '⚠️ <span class="text-red-500 font-bold">Error:</span> Gagal terhubung ke server AI.');
+                });
+            }
+
+            function renderBalon(sender, text, isLoad = false) {
+                const container = document.getElementById('chat-messages');
+                const divWrap = document.createElement('div');
+                
+                if(isLoad) {
+                    divWrap.id = 'chat-loading';
+                    divWrap.className = "flex flex-col items-start msg-anim";
+                    divWrap.innerHTML = `
+                        <div class="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 flex gap-1">
+                            <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+                        </div>`;
+                } else {
+                    if (sender === 'user') {
+                        divWrap.className = "flex flex-col items-end msg-anim";
+                        divWrap.innerHTML = `
+                            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-3.5 rounded-2xl rounded-tr-none shadow-md max-w-[85%] text-sm leading-relaxed border border-blue-500/20">
+                                ${text.replace(/\n/g, '<br>')}
+                            </div>`;
+                    } else {
+                        divWrap.className = "flex flex-col items-start msg-anim";
+                        divWrap.innerHTML = `
+                            <span class="text-[9px] font-black text-slate-400 ml-1 mb-1 uppercase tracking-widest">Asisten AI</span>
+                            <div class="bg-white text-slate-700 p-3.5 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 max-w-[85%] text-sm leading-relaxed">
+                                ${text.replace(/\n/g, '<br>')}
+                            </div>`;
+                    }
+                }
+                container.appendChild(divWrap);
+                container.scrollTop = container.scrollHeight;
+            }
+
+            function hapusLoading() {
+                const el = document.getElementById('chat-loading');
+                if(el) el.remove();
             }
         </script>
     </body>

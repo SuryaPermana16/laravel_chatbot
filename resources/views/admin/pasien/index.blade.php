@@ -5,91 +5,104 @@
         </h2>
     </x-slot>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-12 bg-slate-50 min-h-screen">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             
-            <div class="mb-6 flex justify-between items-center">
-                <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center text-sm text-gray-500 hover:text-indigo-600 font-bold transition">
-                    <i class="fas fa-arrow-left mr-2"></i> Kembali ke Dashboard
+            <div class="mb-2">
+                <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center text-sm text-gray-500 hover:text-indigo-600 font-bold transition group">
+                    <i class="fas fa-arrow-left mr-2 transition-transform group-hover:-translate-x-1"></i> Kembali ke Dashboard
                 </a>
             </div>
 
-            @if(session('success'))
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil!',
-                        text: "{{ session('success') }}",
-                        showConfirmButton: false,
-                        timer: 2000,
-                        customClass: { popup: 'rounded-2xl' }
-                    });
-                });
-            </script>
-            @endif
-
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-extrabold text-gray-900">Daftar Pasien Terdaftar</h3>
-                <a href="{{ route('admin.pasien.create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg shadow-indigo-200 transition-all flex items-center gap-2">
-                    <i class="fas fa-plus"></i> Pasien Baru
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
+                <div>
+                    <h3 class="text-2xl font-black text-gray-900 uppercase tracking-tight">Daftar Pasien</h3>
+                    <p class="text-sm text-gray-500">Total terdaftar: <span class="font-bold text-indigo-600">{{ $pasiens->count() }} Pasien</span></p>
+                </div>
+                <a href="{{ route('admin.pasien.create') }}" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-2xl shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2 transform hover:-translate-y-0.5">
+                    <i class="fas fa-plus-circle"></i> Tambah Pasien Baru
                 </a>
             </div>
 
-            <div class="bg-white overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:rounded-2xl border border-gray-100">
+            <div class="bg-white overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:rounded-[2.5rem] border border-gray-100">
                 <div class="p-0 text-gray-900 overflow-x-auto">
                     <table class="min-w-full table-auto text-sm text-left">
-                        <thead class="bg-gray-50 border-b border-gray-100">
+                        <thead class="bg-gray-50/50 border-b border-gray-100">
                             <tr>
-                                <th class="px-6 py-4 font-bold text-gray-500 uppercase tracking-wider">Profil Pasien</th>
-                                <th class="px-6 py-4 font-bold text-gray-500 uppercase tracking-wider text-center">L/P & Usia</th>
-                                <th class="px-6 py-4 font-bold text-gray-500 uppercase tracking-wider">Kontak & Akun</th>
-                                <th class="px-6 py-4 font-bold text-gray-500 uppercase tracking-wider text-center">Aksi</th>
+                                <th class="px-6 py-5 font-bold text-gray-400 uppercase tracking-widest text-[10px] text-center w-32">Nomor RM</th>
+                                <th class="px-6 py-5 font-bold text-gray-400 uppercase tracking-widest text-[10px]">Profil Pasien</th>
+                                <th class="px-6 py-5 font-bold text-gray-400 uppercase tracking-widest text-[10px] text-center">Gender & Usia</th>
+                                <th class="px-6 py-5 font-bold text-gray-400 uppercase tracking-widest text-[10px]">Kontak & Akun</th>
+                                <th class="px-6 py-5 font-bold text-gray-400 uppercase tracking-widest text-[10px] text-center">Aksi Manajemen</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
+                        <tbody class="divide-y divide-gray-50">
                             @forelse ($pasiens as $p)
-                            <tr class="hover:bg-slate-50 transition duration-200">
+                            <tr class="hover:bg-indigo-50/30 transition duration-200">
+                                
+                                <td class="px-6 py-4 text-center">
+                                    <span class="inline-block bg-slate-900 text-white font-black text-xs px-3 py-1.5 rounded-xl shadow-sm whitespace-nowrap tracking-tighter">
+                                        {{ $p->no_rm ?? 'OTOMATIS' }}
+                                    </span>
+                                </td>
+
                                 <td class="px-6 py-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-full {{ $p->jenis_kelamin == 'L' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600' }} flex items-center justify-center font-bold">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-11 h-11 rounded-2xl {{ $p->jenis_kelamin == 'L' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600' }} flex items-center justify-center font-black text-lg shadow-sm shrink-0">
                                             {{ strtoupper(substr($p->nama_lengkap, 0, 1)) }}
                                         </div>
-                                        <div class="font-bold text-gray-800">{{ $p->nama_lengkap }}</div>
+                                        <div>
+                                            <div class="font-extrabold text-gray-800 text-base leading-tight">{{ $p->nama_lengkap }}</div>
+                                            <div class="text-[10px] text-gray-400 uppercase font-bold mt-0.5 tracking-wide">ID: #{{ $p->id }}</div>
+                                        </div>
                                     </div>
                                 </td>
+                                
                                 <td class="px-6 py-4 text-center">
-                                    <div class="flex flex-col items-center justify-center gap-1">
+                                    <div class="flex flex-col items-center justify-center gap-1.5">
                                         @if($p->jenis_kelamin == 'L')
-                                            <span class="bg-blue-50 text-blue-600 px-3 py-0.5 rounded-md text-xs font-bold border border-blue-200">Laki-laki</span>
+                                            <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg text-[10px] font-black border border-blue-100 uppercase">Laki-laki</span>
                                         @else
-                                            <span class="bg-pink-50 text-pink-600 px-3 py-0.5 rounded-md text-xs font-bold border border-pink-200">Perempuan</span>
+                                            <span class="bg-pink-50 text-pink-600 px-3 py-1 rounded-lg text-[10px] font-black border border-pink-100 uppercase">Perempuan</span>
                                         @endif
-                                        <span class="text-xs font-medium text-gray-500">{{ \Carbon\Carbon::parse($p->tanggal_lahir)->age }} Thn</span>
+                                        <span class="text-xs font-bold text-gray-600">{{ \Carbon\Carbon::parse($p->tanggal_lahir)->age }} Tahun</span>
                                     </div>
                                 </td>
+                                
                                 <td class="px-6 py-4">
-                                    <div class="text-gray-700 font-medium mb-1"><i class="fas fa-phone-alt text-gray-400 mr-2 w-4"></i>{{ $p->no_telepon }}</div>
-                                    <div class="text-xs text-gray-500"><i class="far fa-envelope text-gray-400 mr-2 w-4"></i>{{ $p->user->email ?? '- Tidak ada -' }}</div>
+                                    <div class="text-gray-700 font-bold mb-1 flex items-center gap-2">
+                                        <i class="fas fa-phone-alt text-indigo-400 text-xs"></i>
+                                        {{ $p->no_telepon }}
+                                    </div>
+                                    <div class="text-xs text-gray-400 flex items-center gap-2 italic">
+                                        <i class="far fa-envelope text-gray-300 text-xs"></i>
+                                        {{ $p->user->email ?? '-' }}
+                                    </div>
                                 </td>
+                                
                                 <td class="px-6 py-4 text-center">
                                     <div class="flex justify-center items-center gap-2">
-                                        <a href="{{ route('admin.pasien.show', $p->id) }}" class="text-indigo-600 hover:text-indigo-800 font-bold px-3 py-1 bg-indigo-50 border border-indigo-200 rounded-lg transition uppercase text-xs" title="Lihat Rekam Medis">Rekam Medis</a>
-                                        <a href="{{ route('admin.pasien.edit', $p->id) }}" class="text-amber-500 hover:text-amber-700 font-bold px-3 py-1 bg-amber-50 border border-amber-200 rounded-lg transition uppercase text-xs">Edit</a>
+                                        <a href="{{ route('admin.pasien.show', $p->id) }}" class="p-2.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all shadow-sm" title="Lihat Detail">
+                                            <i class="fas fa-file-medical"></i>
+                                        </a>
+                                        <a href="{{ route('admin.pasien.edit', $p->id) }}" class="p-2.5 bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white rounded-xl transition-all shadow-sm" title="Edit Data">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
                                         
-                                        <form action="{{ route('admin.pasien.destroy', $p->id) }}" method="POST" id="delete-form-{{ $p->id }}" class="inline-block">
+                                        <form action="{{ route('admin.pasien.destroy', $p->id) }}" method="POST" id="form-hapus-{{ $p->id }}" class="hidden">
                                             @csrf 
                                             @method('DELETE')
-                                            <button type="button" onclick="konfirmasiHapusPasien('{{ $p->id }}', '{{ $p->nama_lengkap }}')" class="text-red-500 hover:text-red-700 font-bold px-3 py-1 bg-red-50 border border-red-200 rounded-lg transition uppercase text-xs">Hapus</button>
                                         </form>
+
+                                        <button type="button" onclick="confirmDelete('{{ $p->id }}', '{{ $p->nama_lengkap }}')" class="p-2.5 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all shadow-sm" title="Hapus Pasien">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="4" class="px-6 py-12 text-center text-gray-400">Belum ada data pasien terdaftar.</td>
+                                <td colspan="5" class="px-6 py-20 text-center text-gray-400">Belum ada data pasien terdaftar.</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -100,25 +113,26 @@
     </div>
 
     <script>
-        function konfirmasiHapusPasien(id, nama) {
+        function confirmDelete(id, name) {
             Swal.fire({
-                title: 'Hapus Data Pasien?',
-                text: "Pasien " + nama + " akan dihapus permanen. Seluruh riwayat rekam medisnya juga akan hilang!",
+                title: 'Hapus Pasien?',
+                text: "Data " + name + " akan dihapus permanen beserta seluruh riwayat medisnya!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ef4444',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: 'Ya, Hapus!',
+                confirmButtonText: 'Ya, Hapus Permanen!',
                 cancelButtonText: 'Batal',
                 reverseButtons: true,
                 customClass: {
-                    popup: 'rounded-3xl',
-                    confirmButton: 'rounded-xl px-6 py-2 font-bold',
-                    cancelButton: 'rounded-xl px-6 py-2 font-bold'
+                    popup: 'rounded-[2.5rem] p-8',
+                    confirmButton: 'rounded-xl px-6 py-3 font-bold',
+                    cancelButton: 'rounded-xl px-6 py-3 font-bold'
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    document.getElementById('delete-form-' + id).submit();
+                    // Langsung eksekusi ID form yang sesuai
+                    document.getElementById('form-hapus-' + id).submit();
                 }
             })
         }
