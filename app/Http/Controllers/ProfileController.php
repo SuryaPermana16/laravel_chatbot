@@ -9,10 +9,15 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
+// Import semua model yang terkait dengan User
+use App\Models\Pasien;
+use App\Models\Dokter;
+use App\Models\Apoteker;
+
 class ProfileController extends Controller
 {
     /**
-     * Display the user's profile form.
+     * Menampilkan form edit profil.
      */
     public function edit(Request $request): View
     {
@@ -22,23 +27,44 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update the user's profile information.
+     * Update data profil user dan sinkronisasi ke tabel terkait.
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $user->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        // 1. Simpan perubahan ke tabel 'users'
+        $user->save();
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        // 2. Sinkronisasi nama ke tabel Biodata masing-masing Role
+        if ($user->role === 'pasien') {
+            Pasien::where('user_id', $user->id)->update([
+                'nama_lengkap' => $user->name
+            ]);
+        } 
+        elseif ($user->role === 'dokter') {
+            Dokter::where('user_id', $user->id)->update([
+                'nama_lengkap' => $user->name
+            ]);
+        }
+        elseif ($user->role === 'apoteker') {
+            Apoteker::where('user_id', $user->id)->update([
+                'nama_lengkap' => $user->name
+            ]);
+        }
+        
+
+        // Menggunakan session 'success' agar muncul Popup SweetAlert2 yang keren!
+        return Redirect::route('profile.edit')->with('success', 'Data Profil Berhasil Diperbarui!');
     }
 
     /**
-     * Delete the user's account.
+     * Hapus akun user permanen.
      */
     public function destroy(Request $request): RedirectResponse
     {
@@ -50,6 +76,8 @@ class ProfileController extends Controller
 
         Auth::logout();
 
+        // Ini akan otomatis menghapus biodata Pasien/Dokter juga 
+        // asalkan di file migration-nya sudah pakai onDelete('cascade')
         $user->delete();
 
         $request->session()->invalidate();
