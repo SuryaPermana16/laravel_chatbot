@@ -5,6 +5,8 @@ use App\Models\Dokter;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Api\ChatbotController;
+use App\Models\KnowledgeBase;
+use Illuminate\Support\Facades\Http;
 
 // Import Controller Dashboard per Role
 use App\Http\Controllers\Dashboard\AdminController;
@@ -183,3 +185,35 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+Route::get('/update-vektor', function () {
+    // Kita ambil semua data untuk diproses ulang secara total
+    $kbs = KnowledgeBase::all(); 
+    $apiKey = env('GEMINI_API_KEY');
+    $jumlahBerhasil = 0;
+    
+    foreach ($kbs as $kb) {
+        $textToEmbed = "Kategori: " . $kb->kategori . " | Pertanyaan: " . $kb->pertanyaan . " | Jawaban: " . $kb->jawaban;
+        
+        $response = Http::post("https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key={$apiKey}", [
+            'model' => 'models/gemini-embedding-001',
+            'content' => [
+                'parts' => [['text' => $textToEmbed]]
+            ]
+        ]);
+
+        if ($response->successful()) {
+            $vector = $response->json()['embedding']['values'];
+            
+            // Simpan ke database
+            $kb->update([
+                'embedding' => json_encode($vector)
+            ]);
+            $jumlahBerhasil++;
+        } else {
+            return "Gagal di ID " . $kb->id . ". Pesan: " . $response->body();
+        }
+    }
+    
+    return "MANTAP! Database sudah segar dengan Vektor v1. Total: " . $jumlahBerhasil . " data.";
+});
