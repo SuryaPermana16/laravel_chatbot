@@ -85,22 +85,39 @@ class ChatbotController extends Controller
             // TAHAP 2 (Lanjutan): REAL-TIME DATA RETRIEVAL (SQL)
             // ==========================================================
             
-            // Data Laporan Statistik
+            // 1. Data Pasien & Keuangan Global
             $totalPasien = Pasien::count();
             $pasienHariIni = Kunjungan::whereDate('created_at', Carbon::today())->count();
-            $pendapatanHariIni = Pembayaran::whereDate('created_at', Carbon::today())->sum('total_biaya') ?? 0;
-            $pendapatanKeseluruhan = Pembayaran::sum('total_biaya') ?? 0;
+            $pendapatanHariIni = Kunjungan::whereDate('created_at', Carbon::today())->sum('total_bayar') ?? 0;
+            $pendapatanKeseluruhan = Kunjungan::sum('total_bayar') ?? 0;
             
-            $penyakitTeratas = RekamMedis::select('diagnosa')
+            // 2. TAMBAHAN: Rekap Pendapatan Harian (30 Hari Terakhir)
+            $pendapatanHarian = Kunjungan::selectRaw('DATE(created_at) as tanggal, SUM(total_bayar) as total')
+                                ->where('created_at', '>=', Carbon::now('Asia/Makassar')->subDays(30))
+                                ->groupBy('tanggal')
+                                ->orderBy('tanggal', 'asc')
+                                ->get();
+            
+            $rincianHarian = "";
+            foreach ($pendapatanHarian as $p) {
+                $tglIndo = Carbon::parse($p->tanggal)->translatedFormat('d F Y');
+                $rincianHarian .= "  * {$tglIndo}: Rp " . number_format($p->total, 0, ',', '.') . "\n";
+            }
+
+            // 3. Data Penyakit
+            $penyakitTeratas = Kunjungan::select('diagnosa')
+                                ->whereNotNull('diagnosa')
                                 ->selectRaw('count(*) as jumlah')
                                 ->groupBy('diagnosa')
                                 ->orderByDesc('jumlah')
                                 ->first();
             $namaPenyakit = $penyakitTeratas ? $penyakitTeratas->diagnosa : 'Belum ada data';
 
+            // 4. Masukkan ke Konteks AI
             $contextData .= "[DATA OPERASIONAL KLINIK REAL-TIME]\n";
             $contextData .= "- Statistik Pasien: Hari ini {$pasienHariIni} orang, Total terdaftar {$totalPasien} orang.\n";
-            $contextData .= "- Keuangan: Pendapatan hari ini Rp " . number_format($pendapatanHariIni, 0, ',', '.') . ", Total pendapatan Rp " . number_format($pendapatanKeseluruhan, 0, ',', '.') . ".\n";
+            $contextData .= "- Keuangan Global: Pendapatan hari ini Rp " . number_format($pendapatanHariIni, 0, ',', '.') . ", Total pendapatan Rp " . number_format($pendapatanKeseluruhan, 0, ',', '.') . ".\n";
+            $contextData .= "- Rincian Pendapatan 30 Hari Terakhir (AI, hitung total dari rentang tanggal yang diminta user berdasarkan data ini):\n" . ($rincianHarian ?: "  * Belum ada data transaksi\n");
             $contextData .= "- Tren Kesehatan: Penyakit tersering saat ini adalah {$namaPenyakit}.\n";
             $contextData .= "Sumber Data: Sistem Manajemen Klinik\n\n";
 

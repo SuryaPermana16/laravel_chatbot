@@ -102,48 +102,52 @@
 
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+        @if(session('login_success'))
         <script>
-            /** 1. POPUP LOGIN SUCCESS (TOAST) **/
-            @if(session('login_success'))
-                const Toast = Swal.mixin({
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 4000,
-                    timerProgressBar: true,
-                    didOpen: (toast) => {
-                        toast.addEventListener('mouseenter', Swal.stopTimer)
-                        toast.addEventListener('mouseleave', Swal.resumeTimer)
-                    }
-                });
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            });
 
-                Toast.fire({
-                    icon: 'success',
-                    title: "{{ session('login_success') }}"
-                });
-            @endif
+            Toast.fire({
+                icon: 'success',
+                title: "{{ session('login_success') }}"
+            });
+        </script>
+        @endif
 
-            /** 2. POPUP SUCCESS & ERROR UMUM **/
-            @if(session('success')) 
-                Swal.fire({ 
-                    icon: 'success', 
-                    title: 'BERHASIL!', 
-                    text: "{{ session('success') }}", 
-                    showConfirmButton: false, 
-                    timer: 2500, 
-                    customClass: { popup: 'rounded-[2rem]' } 
-                }); 
-            @endif
+        @if(session('success')) 
+        <script>
+            Swal.fire({ 
+                icon: 'success', 
+                title: 'BERHASIL!', 
+                text: "{{ session('success') }}", 
+                showConfirmButton: false, 
+                timer: 2500, 
+                customClass: { popup: 'rounded-[2rem]' } 
+            }); 
+        </script>
+        @endif
 
-            @if(session('error')) 
-                Swal.fire({ 
-                    icon: 'error', 
-                    title: 'GAGAL!', 
-                    text: "{{ session('error') }}", 
-                    customClass: { popup: 'rounded-[2rem]' } 
-                }); 
-            @endif
+        @if(session('error')) 
+        <script>
+            Swal.fire({ 
+                icon: 'error', 
+                title: 'GAGAL!', 
+                text: "{{ session('error') }}", 
+                customClass: { popup: 'rounded-[2rem]' } 
+            }); 
+        </script>
+        @endif
 
+        <script>
             /** 3. KONFIRMASI HAPUS DATA **/
             document.addEventListener('DOMContentLoaded', function() {
                 const deleteForms = document.querySelectorAll('.delete-form');

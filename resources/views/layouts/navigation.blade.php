@@ -45,6 +45,8 @@
                         @elseif(request()->routeIs('admin.laporan.*'))
                             <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center"><i class="fas fa-file-pdf"></i></div>
                         
+                        @elseif(request()->routeIs('admin.kb.*'))
+                            <div class="w-10 h-10 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center"><i class="fas fa-brain"></i></div>
                         @elseif(request()->routeIs('profile.*'))
                             <div class="w-10 h-10 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center"><i class="fas fa-user-cog"></i></div>
                         @else
@@ -71,7 +73,8 @@
                         @elseif(request()->routeIs('admin.jadwal.*')) Jadwal Praktek
                         @elseif(request()->routeIs('admin.kunjungan.*')) Antrean Hari Ini
                         @elseif(request()->routeIs('admin.laporan.*')) Laporan Kunjungan
-                        
+
+                        @elseif(request()->routeIs('admin.kb.*')) Database Pengetahuan AI
                         @elseif(request()->routeIs('profile.*')) Profil Saya
                         @else Klinik Bina Usada
                         @endif
@@ -136,7 +139,9 @@
                 <x-responsive-nav-link :href="route('admin.jadwal.index')" :active="request()->routeIs('admin.jadwal.*')"><i class="far fa-calendar-check mr-2 w-4 text-fuchsia-500"></i> Jadwal Praktek</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.kunjungan.index')" :active="request()->routeIs('admin.kunjungan.*')"><i class="fas fa-clipboard-list mr-2 w-4 text-pink-500"></i> Antrean Pasien</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.laporan.index')" :active="request()->routeIs('admin.laporan.*')"><i class="fas fa-file-pdf mr-2 w-4 text-red-500"></i> Laporan Transaksi</x-responsive-nav-link>
-            @endif
+                
+                <x-responsive-nav-link :href="route('admin.kb.index')" :active="request()->routeIs('admin.kb.*')"><i class="fas fa-brain mr-2 w-4 text-cyan-500"></i> Database AI</x-responsive-nav-link>
+                @endif
         </div>
 
         <div class="pt-4 pb-4 border-t border-gray-100 bg-slate-50">
