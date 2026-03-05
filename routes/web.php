@@ -16,6 +16,7 @@ use App\Http\Controllers\Dashboard\PasienController;
 use App\Http\Controllers\Dashboard\JadwalDokterController;
 use App\Http\Controllers\Dashboard\KelolaKunjunganController;
 use App\Http\Controllers\Dashboard\LaporanController;
+use App\Http\Controllers\Dashboard\KnowledgeBaseController;
 use App\Http\Controllers\Dashboard\ApotekerController as AdminKelolaApoteker;
 
 // Import Controller User/Dokter/Apoteker
@@ -131,6 +132,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // Kelola Admin (SESAMA ADMIN)
     Route::resource('kelola-admin', \App\Http\Controllers\Dashboard\KelolaAdminController::class);
+
+   // Kelola FAQ
+    Route::resource('knowledge-base', \App\Http\Controllers\Dashboard\KnowledgeBaseController::class)->names('kb');
 });
 
 /*
@@ -187,33 +191,38 @@ Route::middleware('auth')->group(function () {
 require __DIR__.'/auth.php';
 
 Route::get('/update-vektor', function () {
-    // Kita ambil semua data untuk diproses ulang secara total
-    $kbs = KnowledgeBase::all(); 
+    // VERSI PINTAR: Hanya ambil data yang 'embedding'-nya masih kosong
+    $kbs = KnowledgeBase::whereNull('embedding')->orWhere('embedding', '')->get(); 
     $apiKey = env('GEMINI_API_KEY');
+    
+    if (!$apiKey) return "Error: API Key kosong!";
+    if ($kbs->isEmpty()) return "<h3>Aman, Kak! Tidak ada data baru yang butuh di-vektor. Semua data sudah siap tempur. 🚀</h3>";
+
     $jumlahBerhasil = 0;
     
     foreach ($kbs as $kb) {
         $textToEmbed = "Kategori: " . $kb->kategori . " | Pertanyaan: " . $kb->pertanyaan . " | Jawaban: " . $kb->jawaban;
         
+        // Tetap pakai v1beta untuk embedding
         $response = Http::post("https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key={$apiKey}", [
             'model' => 'models/gemini-embedding-001',
-            'content' => [
-                'parts' => [['text' => $textToEmbed]]
-            ]
+            'content' => ['parts' => [['text' => $textToEmbed]]]
         ]);
 
         if ($response->successful()) {
             $vector = $response->json()['embedding']['values'];
-            
-            // Simpan ke database
-            $kb->update([
-                'embedding' => json_encode($vector)
-            ]);
+            $kb->update(['embedding' => json_encode($vector)]);
             $jumlahBerhasil++;
         } else {
             return "Gagal di ID " . $kb->id . ". Pesan: " . $response->body();
         }
     }
     
-    return "MANTAP! Database sudah segar dengan Vektor v1. Total: " . $jumlahBerhasil . " data.";
+    return "<h3>MANTAP! Berhasil mencetak vektor untuk {$jumlahBerhasil} data baru! 🎉</h3>";
+});
+
+// Rute untuk mereset ingatan bot (Clear Session)
+Route::get('/reset-chat', function () {
+    session()->forget('chatbot_memory');
+    return "<h1>Ingatan Chatbot berhasil dihapus! 🧹</h1><p>Silakan kembali ke halaman klinik untuk memulai obrolan baru.</p>";
 });

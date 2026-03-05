@@ -44,7 +44,7 @@ class ChatbotController extends Controller
             // TAHAP 1 & 2: EMBEDDING QUERY & VECTOR RETRIEVAL (INTI RAG)
             // ==========================================================
             
-            // 1. Mengubah pertanyaan user menjadi vektor numerik menggunakan AI
+            // 1. Mengubah pertanyaan user menjadi vektor numerik
             $embedResponse = Http::post("https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key={$apiKey}", [
                 'model' => 'models/gemini-embedding-001',
                 'content' => ['parts' => [['text' => $userMessage]]]
@@ -64,8 +64,8 @@ class ChatbotController extends Controller
                     if ($kbVector) {
                         $similarity = $this->calculateCosineSimilarity($queryVector, $kbVector);
 
-                        // Ambang batas kemiripan (threshold) 0.4
-                        if ($similarity > 0.4 && $similarity > $highestSimilarity) {
+                        // Ambang batas kemiripan (threshold) 0.15
+                        if ($similarity > 0.15 && $similarity > $highestSimilarity) {
                             $highestSimilarity = $similarity;
                             $bestKbMatch = $kb;
                         }
@@ -76,6 +76,8 @@ class ChatbotController extends Controller
                     $contextData .= "[DATA KNOWLEDGE BASE]\n";
                     $contextData .= "Informasi Terkait: {$bestKbMatch->jawaban}\n";
                     $contextData .= "Sumber Data: {$bestKbMatch->kategori}\n\n";
+                    // Info debug bisa dihapus nanti kalau sudah fix buat skripsi
+                    $contextData .= "INFO DEBUG: Kasih tau user kalau skor kemiripan data ini adalah: " . $highestSimilarity . "\n\n";
                 }
             }
 
@@ -83,7 +85,7 @@ class ChatbotController extends Controller
             // TAHAP 2 (Lanjutan): REAL-TIME DATA RETRIEVAL (SQL)
             // ==========================================================
             
-            // Data Laporan Statistik (Berdasarkan revisi Dospem)
+            // Data Laporan Statistik
             $totalPasien = Pasien::count();
             $pasienHariIni = Kunjungan::whereDate('created_at', Carbon::today())->count();
             $pendapatanHariIni = Pembayaran::whereDate('created_at', Carbon::today())->sum('total_biaya') ?? 0;
@@ -137,29 +139,51 @@ class ChatbotController extends Controller
             - Gunakan informasi dari label 'Sumber Data' yang tersedia di konteks.
             - Jika menggunakan data Knowledge Base, gunakan kategorinya sebagai sumber.
             - Jika menggunakan data operasional, gunakan label sumber yang tersedia.
-            - Gunakan salam sesuai instruksi pada bagian [WAKTU SEKARANG].
-            - Jangan menentukan salam sendiri.
+            - Jangan menentukan salam sendiri, patuhi salam dari sistem.
 
             [KONTEKS DATA DATABASE]:\n" . $contextData;
 
             // ==========================================================
-            // TAHAP 4: GENERATION (PROSES AI MERANGKAI JAWABAN)
+            // TAHAP 4: GENERATION DENGAN FITUR INGATAN (CHAT HISTORY)
             // ==========================================================
             
+            // 1. Ambil memori percakapan sebelumnya dari Session Laravel
+            $chatHistory = session()->get('chatbot_memory', []);
+
+            // 2. Susun urutan pesan (System Prompt -> Riwayat -> Pertanyaan Baru)
+            $geminiContents = [];
+
+            // A. Masukkan Aturan RAG (System Prompt) di urutan paling awal
+            $geminiContents[] = [
+                'role' => 'user',
+                'parts' => [['text' => $systemPrompt]]
+            ];
+            $geminiContents[] = [
+                'role' => 'model',
+                'parts' => [['text' => 'Baik, saya mengerti aturan tersebut. Saya akan menjawab sesuai data yang diberikan.']]
+            ];
+
+            // B. Masukkan Ingatan Percakapan Sebelumnya
+            foreach ($chatHistory as $history) {
+                $geminiContents[] = [
+                    'role' => $history['role'],
+                    'parts' => [['text' => $history['text']]]
+                ];
+            }
+
+            // C. Masukkan Pertanyaan User yang Paling Baru
+            $geminiContents[] = [
+                'role' => 'user',
+                'parts' => [['text' => $userMessage]]
+            ];
+
+            // 3. Tembak ke API Gemini (v1)
             $generateResponse = Http::post(
                 "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key={$apiKey}",
                 [
-                    'contents' => [
-                        [
-                            'parts' => [
-                                [
-                                    'text' => $systemPrompt . "\n\nPertanyaan User: " . $userMessage
-                                ]
-                            ]
-                        ]
-                    ],
+                    'contents' => $geminiContents,
                     'generationConfig' => [
-                        'temperature' => 0.1,
+                        'temperature' => 0.1, // Tetap rendah agar bot tidak halusinasi
                         'topP' => 0.95,
                         'maxOutputTokens' => 2048,
                     ]
@@ -167,11 +191,22 @@ class ChatbotController extends Controller
             );
 
             if ($generateResponse->successful()) {
-                $botReply = $generateResponse->json()['candidates'][0]['content']['parts'][0]['text'];
+                // Ambil teks balasan asli dari AI
+                $botReplyRaw = $generateResponse->json()['candidates'][0]['content']['parts'][0]['text'];
                 
+                // 4. SIMPAN KE MEMORI UNTUK PERTANYAAN SELANJUTNYA
+                $chatHistory[] = ['role' => 'user', 'text' => $userMessage];
+                $chatHistory[] = ['role' => 'model', 'text' => $botReplyRaw];
+
+                // Batasi memori maksimal 6 pasang (12 pesan) agar kuota server aman
+                if (count($chatHistory) > 12) {
+                    $chatHistory = array_slice($chatHistory, -12);
+                }
+                session()->put('chatbot_memory', $chatHistory);
+
                 // Membersihkan markdown AI menjadi format HTML yang didukung sistem
-                $botReply = str_replace(['**', '*'], ['<b>', '</b>'], $botReply); 
-                return response()->json(['reply' => $botReply]);
+                $botReplyHtml = str_replace(['**', '*'], ['<b>', '</b>'], $botReplyRaw); 
+                return response()->json(['reply' => $botReplyHtml]);
             }
 
             // Menampilkan pesan error detail jika gagal terhubung ke AI
@@ -186,7 +221,6 @@ class ChatbotController extends Controller
 
     /**
      * ALGORITMA COSINE SIMILARITY
-     * Digunakan untuk menghitung kedekatan jarak antara vektor pertanyaan user dengan vektor data database.
      */
     private function calculateCosineSimilarity($vec1, $vec2) {
         $dotProduct = 0; $normA = 0; $normB = 0;

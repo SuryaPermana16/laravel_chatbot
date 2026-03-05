@@ -164,6 +164,17 @@
                     <p class="text-xs text-gray-500 font-medium">Cetak PDF riwayat & transaksi</p>
                 </a>
 
+                <a href="{{ route('admin.kb.index') }}" class="group bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 hover:border-cyan-400 hover:shadow-lg transition duration-300 block">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-xl group-hover:scale-110 transition duration-300">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <i class="fas fa-arrow-right text-gray-300 group-hover:text-cyan-600 transition -translate-x-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-0"></i>
+                    </div>
+                    <h4 class="font-bold text-gray-900 mb-1">Database AI (FAQ)</h4>
+                    <p class="text-xs text-gray-500 font-medium">Kelola pengetahuan Chatbot RAG</p>
+                </a>
+                
             </div>
         </div>
     </div>
