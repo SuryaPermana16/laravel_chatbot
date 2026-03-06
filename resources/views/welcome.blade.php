@@ -7,8 +7,9 @@
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.tailwindcss.com"></script>
@@ -126,7 +127,7 @@
                 @forelse($layanans as $layanan)
                     @php
                         $namaPoli = strtolower($layanan->spesialis);
-                        $ikon = 'fas fa-notes-medical'; // Ikon Default (Jika tidak ada yang cocok)
+                        $ikon = 'fas fa-notes-medical';
 
                         if (str_contains($namaPoli, 'gigi')) {
                             $ikon = 'fas fa-tooth';
@@ -204,11 +205,10 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center max-w-3xl mx-auto mb-16">
                 <h2 class="text-3xl font-extrabold text-dark mb-4">Tim Dokter Kami</h2>
-                <p class="text-gray-600">Dokter spesialis berpengalaman dan bersertifikasi siap memberikan perawatan terbaik untuk Anda.</p>
+                <p class="text-gray-600">Klik kartu dokter untuk melihat jadwal praktik secara lengkap dan detail.</p>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {{-- Kita siapkan array gambar statisnya dulu --}}
                 @php
                     $doctorImages = [
                         'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
@@ -219,37 +219,92 @@
                 @endphp
 
                 @forelse($dokters as $d)
-                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow border border-gray-100 group">
-                    <div class="relative overflow-hidden">
-                        <img src="{{ $doctorImages[$loop->index % 4] }}" alt="{{ $d->nama_lengkap }}" class="w-full h-72 object-cover object-top filter grayscale group-hover:grayscale-0 transition duration-500 group-hover:scale-105">
-                        <div class="absolute inset-0 bg-gradient-to-t from-dark/60 to-transparent opacity-0 group-hover:opacity-100 transition duration-500"></div>
-                    </div>
+                
+                @php
+                    $urutanHari = ['senin' => 1, 'selasa' => 2, 'rabu' => 3, 'kamis' => 4, 'jumat' => 5, 'sabtu' => 6, 'minggu' => 7];
                     
-                    <div class="p-6 relative bg-white">
-                        <h3 class="font-bold text-xl text-dark mb-1">{{ $d->nama_lengkap }}</h3>
-                        <p class="text-primary font-bold text-sm mb-4 uppercase tracking-wider">{{ $d->spesialis }}</p>
-                        
-                        <div class="text-sm text-gray-600 space-y-3 border-t border-gray-100 pt-4 mt-2">
-                            <div class="flex items-center">
-                                <div class="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center mr-3">
-                                    <i class="fas fa-money-bill-wave text-green-500"></i>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-gray-500">Tarif Jasa</p>
-                                    <p class="font-bold text-dark">Rp {{ number_format($d->harga_jasa, 0, ',', '.') }}</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center">
-                                <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center mr-3">
-                                    <i class="fas fa-phone-alt text-blue-500"></i>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-gray-500">Kontak</p>
-                                    <p class="font-medium">{{ $d->no_telepon ?? '-' }}</p>
-                                </div>
+                    // Ambil jadwal dan urutkan
+                    $jadwalSorted = $d->jadwals->sortBy(function($j) use ($urutanHari) {
+                        return $urutanHari[strtolower($j->hari)] ?? 99;
+                    });
+                @endphp
+
+                <div x-data="{ showJadwal: false }">
+                    
+                    <div @click="showJadwal = true" class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all border border-gray-100 group cursor-pointer h-full flex flex-col transform hover:-translate-y-2">
+                        <div class="relative overflow-hidden">
+                            <img src="{{ $doctorImages[$loop->index % 4] }}" alt="{{ $d->nama_lengkap }}" class="w-full h-72 object-cover object-top filter grayscale group-hover:grayscale-0 transition duration-500 group-hover:scale-105">
+                            <div class="absolute inset-0 bg-gradient-to-t from-dark/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-500 flex items-end justify-center pb-6">
+                                <span class="text-white font-bold text-sm bg-primary/90 px-4 py-2 rounded-full backdrop-blur-sm shadow-lg">
+                                    <i class="far fa-calendar-alt mr-2"></i> Lihat Jadwal
+                                </span>
                             </div>
                         </div>
+                        
+                        <div class="p-6 relative bg-white flex-1 text-center">
+                            <h3 class="font-black text-xl text-dark mb-1">{{ $d->nama_lengkap }}</h3>
+                            <p class="text-primary font-bold text-sm uppercase tracking-widest bg-blue-50 inline-block px-3 py-1 rounded-md">Poli {{ $d->spesialis }}</p>
+                        </div>
                     </div>
+
+                    <div x-show="showJadwal" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" @click="showJadwal = false" x-transition.opacity></div>
+                        
+                        <div class="relative bg-white rounded-3xl w-full max-w-md p-6 sm:p-8 shadow-2xl transform transition-all"
+                             x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-8 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-8 sm:translate-y-0 sm:scale-95">
+                             
+                             <div class="flex justify-between items-start mb-6">
+                                 <div class="flex items-center gap-4">
+                                     <img src="{{ $doctorImages[$loop->index % 4] }}" class="w-16 h-16 rounded-full object-cover border-4 border-blue-50 shadow-sm">
+                                     <div>
+                                         <h3 class="font-black text-xl text-dark leading-tight">{{ $d->nama_lengkap }}</h3>
+                                         <p class="text-xs font-bold text-primary uppercase tracking-widest mt-1">Poli {{ $d->spesialis }}</p>
+                                     </div>
+                                 </div>
+                                 <button @click="showJadwal = false" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-red-100 hover:text-red-500 transition">
+                                     <i class="fas fa-times"></i>
+                                 </button>
+                             </div>
+
+                             <div class="bg-slate-50 rounded-2xl p-5 border border-gray-100 shadow-inner">
+                                 <h4 class="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                     <i class="far fa-clock text-blue-400"></i> Rincian Jadwal Praktik
+                                 </h4>
+                                 
+                                 @if($jadwalSorted->count() > 0)
+                                     <div class="space-y-3">
+                                         @foreach($jadwalSorted as $j)
+                                             <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:border-blue-300 transition group">
+                                                 <div class="font-bold text-gray-800 flex items-center gap-3">
+                                                     <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition">
+                                                         <i class="far fa-calendar"></i>
+                                                     </div>
+                                                     {{ strtoupper($j->hari) }}
+                                                 </div>
+                                                 <div class="font-black text-dark text-sm bg-gray-50 px-3 py-1.5 rounded-lg">
+                                                     {{ date('H:i', strtotime($j->jam_mulai)) }} - {{ date('H:i', strtotime($j->jam_selesai)) }}
+                                                 </div>
+                                             </div>
+                                         @endforeach
+                                     </div>
+                                 @else
+                                     <div class="text-center py-8">
+                                         <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-300 text-2xl">
+                                             <i class="fas fa-calendar-times"></i>
+                                         </div>
+                                         <p class="text-gray-500 font-medium">Jadwal dokter belum tersedia.</p>
+                                     </div>
+                                 @endif
+                             </div>
+
+                             <div class="mt-8">
+                                 <a href="{{ route('login') }}" class="flex items-center justify-center w-full bg-gray-900 hover:bg-primary text-white text-center font-bold py-4 rounded-xl transition duration-300 shadow-lg shadow-gray-300 gap-2">
+                                     Buat Janji Temu <i class="fas fa-paper-plane text-sm"></i>
+                                 </a>
+                             </div>
+                        </div>
+                    </div>
+
                 </div>
                 @empty
                 <div class="col-span-4 text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-300 text-gray-500">

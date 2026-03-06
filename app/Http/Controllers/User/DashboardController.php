@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\JadwalDokter;
 use App\Models\Kunjungan;
 use App\Models\Pasien;
-use App\Models\Dokter; // <--- Jangan lupa import model Dokter
+use App\Models\Dokter;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -20,18 +20,17 @@ class DashboardController extends Controller
         \Carbon\Carbon::setLocale('id');
         $hariIni = \Carbon\Carbon::now()->isoFormat('dddd');
 
-        // 2. Data Statistik & List untuk Modal (UPDATE DISINI)
+        // 2. Data Statistik & List untuk Modal
         $totalDokter = Dokter::count();
         $totalSpesialis = Dokter::distinct('spesialis')->count('spesialis');
-        
-        // Ambil data detail untuk modal
-        $daftarSpesialis = Dokter::distinct('spesialis')->pluck('spesialis'); // List nama spesialis unik
-        $daftarDokter = Dokter::all(); // List semua dokter
+        $daftarSpesialis = Dokter::distinct('spesialis')->pluck('spesialis'); 
+        $daftarDokter = Dokter::all(); 
 
-        // 3. Ambil Jadwal Dokter Hari Ini
+        // 3. Ambil SEMUA Jadwal Dokter (Fitur Advance Booking)
         $jadwals = JadwalDokter::with('dokter')
-                    ->where('hari', $hariIni)
-                    ->get();
+                    ->get()
+                    ->unique('dokter_id')
+                    ->values();
 
         // 4. Riwayat Kunjungan Pasien
         $pasien = Pasien::where('user_id', Auth::id())->first();
@@ -50,8 +49,8 @@ class DashboardController extends Controller
             'hariIni',
             'totalDokter',
             'totalSpesialis',
-            'daftarSpesialis', // <--- Kirim variable baru ini
-            'daftarDokter'     // <--- Kirim variable baru ini
+            'daftarSpesialis', 
+            'daftarDokter'    
         ));
     }
 }

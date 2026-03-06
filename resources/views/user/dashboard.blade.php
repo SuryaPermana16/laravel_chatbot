@@ -84,10 +84,10 @@
             <div id="area-reservasi" class="scroll-mt-24">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 gap-2">
                     <h3 class="font-extrabold text-2xl text-gray-900 flex items-center gap-3">
-                        Buat Janji Temu Hari Ini
+                        Pilih Dokter & Buat Janji Temu
                     </h3>
                     <span class="text-sm font-medium text-gray-500 bg-white border border-gray-200 px-4 py-1.5 rounded-full shadow-sm">
-                        <i class="fas fa-circle text-[8px] text-green-500 mr-1 animate-pulse"></i> Jadwal Tersedia
+                        <i class="fas fa-circle text-[8px] text-green-500 mr-1 animate-pulse"></i> Reservasi Dibuka
                     </span>
                 </div>
 
@@ -105,20 +105,18 @@
                                     <span class="inline-block bg-blue-50 text-blue-600 text-[10px] font-extrabold px-2.5 py-1 rounded-md mt-1.5 uppercase tracking-wider">Poli {{ $jadwal->dokter->spesialis }}</span>
                                 </div>
                             </div>
-                            <div class="bg-slate-50 rounded-2xl p-5 space-y-3 text-sm text-gray-700 font-medium">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-gray-500 text-xs uppercase font-bold tracking-wider"><i class="far fa-calendar-alt mr-1"></i> Hari</span>
-                                    <span class="font-bold text-gray-900">{{ $jadwal->hari }}</span>
+                            
+                            <div class="bg-slate-50 rounded-2xl p-4 text-center text-sm text-gray-700 font-medium border border-slate-100">
+                                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm text-blue-500">
+                                    <i class="far fa-calendar-alt text-lg"></i>
                                 </div>
-                                <div class="flex justify-between items-center">
-                                    <span class="text-gray-500 text-xs uppercase font-bold tracking-wider"><i class="far fa-clock mr-1"></i> Jam</span>
-                                    <span class="font-bold text-gray-900">{{ date('H:i', strtotime($jadwal->jam_mulai)) }} - {{ date('H:i', strtotime($jadwal->jam_selesai)) }}</span>
-                                </div>
+                                <p class="text-xs text-gray-500 leading-relaxed">Cek kalender reservasi untuk melihat <br> <span class="font-bold text-gray-800">Hari & Jam Praktek</span> lengkap.</p>
                             </div>
+
                         </div>
                         <div class="p-4 pt-0">
                             <a href="{{ route('user.daftar', $jadwal->id) }}" class="block w-full bg-gray-900 hover:bg-blue-600 text-white text-center font-bold py-3.5 rounded-xl transition duration-300 shadow-md">
-                                Reservasi Sekarang <i class="fas fa-arrow-right ml-2"></i>
+                                Pilih Jadwal & Reservasi <i class="fas fa-arrow-right ml-2"></i>
                             </a>
                         </div>
                     </div>
@@ -128,8 +126,8 @@
                             <div class="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl text-gray-300">
                                 <i class="fas fa-calendar-times"></i>
                             </div>
-                            <h4 class="text-xl font-extrabold text-gray-800">Tidak Ada Jadwal Praktek</h4>
-                            <p class="text-gray-500 mt-2">Maaf, belum ada dokter yang membuka jadwal praktek untuk hari <strong>{{ $hariIni }}</strong>.</p>
+                            <h4 class="text-xl font-extrabold text-gray-800">Belum Ada Dokter Tersedia</h4>
+                            <p class="text-gray-500 mt-2">Maaf, saat ini belum ada jadwal praktek dokter yang terdaftar di sistem.</p>
                         </div>
                     </div>
                     @endforelse

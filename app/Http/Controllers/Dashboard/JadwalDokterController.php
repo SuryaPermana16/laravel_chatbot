@@ -12,7 +12,6 @@ class JadwalDokterController extends Controller
     // 1. DAFTAR JADWAL
     public function index()
     {
-        // Ambil jadwal beserta info dokternya
         $jadwals = JadwalDokter::with('dokter')->latest()->get();
         return view('admin.jadwal.index', compact('jadwals'));
     }
@@ -20,7 +19,6 @@ class JadwalDokterController extends Controller
     // 2. FORM TAMBAH
     public function create()
     {
-        // Kita butuh data dokter buat dipilih di Dropdown
         $dokters = Dokter::all(); 
         return view('admin.jadwal.create', compact('dokters'));
     }
@@ -44,7 +42,7 @@ class JadwalDokterController extends Controller
     public function edit($id)
     {
         $jadwal = JadwalDokter::findOrFail($id);
-        $dokters = Dokter::all(); // Data dokter buat dropdown
+        $dokters = Dokter::all(); 
         return view('admin.jadwal.edit', compact('jadwal', 'dokters'));
     }
 

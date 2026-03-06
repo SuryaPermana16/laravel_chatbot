@@ -16,5 +16,9 @@ class Dokter extends Model
         return $this->belongsTo(User::class);
     }
     
-    // Nanti tambah relasi jadwal & kunjungan disini
+    // Relasi dari Dokter ke Jadwal (Satu Dokter punya Banyak Jadwal)
+    public function jadwals()
+    {
+        return $this->hasMany(JadwalDokter::class, 'dokter_id');
+    }
 }

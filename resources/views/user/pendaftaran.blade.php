@@ -16,7 +16,6 @@
 
             <form action="{{ route('user.daftar.store', $jadwal->id) }}" method="POST">
                 @csrf
-                <input type="hidden" name="tanggal_kunjungan" value="{{ $tanggalKunjungan }}">
 
                 <div class="flex flex-col lg:flex-row gap-8">
                     
@@ -36,22 +35,36 @@
                             <hr class="my-6 border-gray-100">
 
                             <div class="text-left space-y-4">
+                                
                                 <div>
-                                    <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Hari & Jam Praktek</span>
-                                    <div class="font-bold text-gray-800 flex items-center gap-2">
-                                        <i class="far fa-calendar text-blue-500 w-4"></i> {{ $jadwal->hari }}
-                                    </div>
-                                    <div class="font-bold text-gray-800 flex items-center gap-2 mt-1">
-                                        <i class="far fa-clock text-blue-500 w-4"></i> {{ date('H:i', strtotime($jadwal->jam_mulai)) }} - {{ date('H:i', strtotime($jadwal->jam_selesai)) }} WIB
+                                    <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Seluruh Jadwal Praktek</span>
+                                    <div class="font-bold text-gray-800 flex flex-col gap-2 mt-2">
+                                        @foreach($semuaJadwal as $j)
+                                            <div class="flex items-center text-sm {{ strtolower($j->hari) == strtolower(\Carbon\Carbon::parse($tanggalKunjungan)->translatedFormat('l')) ? 'text-blue-600 bg-blue-50 p-2 rounded-lg border border-blue-100' : 'p-2' }}">
+                                                <i class="far fa-calendar-alt w-5 text-center {{ strtolower($j->hari) == strtolower(\Carbon\Carbon::parse($tanggalKunjungan)->translatedFormat('l')) ? 'text-blue-500' : 'text-gray-400' }}"></i> 
+                                                <span class="w-20">{{ strtoupper($j->hari) }}</span> 
+                                                <i class="far fa-clock w-5 text-center ml-2 {{ strtolower($j->hari) == strtolower(\Carbon\Carbon::parse($tanggalKunjungan)->translatedFormat('l')) ? 'text-blue-500' : 'text-gray-400' }}"></i> 
+                                                {{ date('H:i', strtotime($j->jam_mulai)) }} - {{ date('H:i', strtotime($j->jam_selesai)) }} WIB
+                                            </div>
+                                        @endforeach
                                     </div>
                                 </div>
                                 
-                                <div class="bg-blue-600 p-4 rounded-xl text-white mt-4 shadow-md shadow-blue-200">
-                                    <span class="block text-[10px] text-blue-200 font-bold uppercase tracking-wider mb-1">Tanggal Rencana Kunjungan</span>
-                                    <span class="block font-black text-lg">
-                                        {{ \Carbon\Carbon::parse($tanggalKunjungan)->translatedFormat('l, d M Y') }}
-                                    </span>
+                                <div class="bg-blue-600 p-5 rounded-2xl text-white mt-4 shadow-lg shadow-blue-200/50">
+                                    <label for="tanggal_kunjungan" class="block text-[10px] text-blue-200 font-bold uppercase tracking-wider mb-2">
+                                        Pilih Tanggal Kedatangan <i class="fas fa-edit ml-1"></i>
+                                    </label>
+                                    <input type="date" name="tanggal_kunjungan" id="tanggal_kunjungan" 
+                                        class="w-full bg-white text-gray-900 border-none rounded-xl p-3 font-black text-sm focus:ring-4 focus:ring-blue-300 transition-all cursor-pointer shadow-inner"
+                                        value="{{ $tanggalKunjungan }}"
+                                        min="{{ date('Y-m-d') }}"
+                                        onchange="gantiTanggal(this.value)"
+                                        required>
+                                    <p class="text-[10px] text-blue-100 font-medium mt-3 leading-snug">
+                                        <i class="fas fa-info-circle mr-1"></i> Jadwal dokter hanya tersedia di hari: <b>{{ strtoupper($hariPraktekString) }}</b>.
+                                    </p>
                                 </div>
+
                             </div>
                         </div>
                     </div>
@@ -71,8 +84,8 @@
                                             <label class="cursor-pointer relative group">
                                                 <input type="radio" name="jam_pilihan" value="{{ $slot['jam'] }}" class="peer hidden" required>
                                                 <div class="py-3 px-2 text-center border-2 border-gray-100 rounded-xl bg-white text-gray-600 font-bold text-sm transition-all duration-200
-                                                            group-hover:border-blue-300 group-hover:bg-blue-50
-                                                            peer-checked:border-blue-600 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:shadow-lg peer-checked:shadow-blue-200 transform peer-checked:-translate-y-1">
+                                                    group-hover:border-blue-300 group-hover:bg-blue-50
+                                                    peer-checked:border-blue-600 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:shadow-lg peer-checked:shadow-blue-200 transform peer-checked:-translate-y-1">
                                                     {{ $slot['jam'] }}
                                                 </div>
                                                 <div class="absolute -top-2 -right-2 w-5 h-5 bg-white border-2 border-blue-600 text-blue-600 rounded-full flex items-center justify-center opacity-0 peer-checked:opacity-100 transition-opacity z-10">
@@ -100,7 +113,7 @@
                             @else
                                 <div class="text-center py-12 bg-slate-50 border-2 border-dashed border-gray-200 rounded-2xl">
                                     <i class="fas fa-calendar-times text-gray-300 text-5xl mb-3"></i>
-                                    <p class="text-gray-500 font-medium">Tidak ada slot jam tersedia untuk hari ini.</p>
+                                    <p class="text-gray-500 font-medium">Tidak ada slot jam tersedia. Silakan pilih tanggal lain yang sesuai dengan hari praktek dokter.</p>
                                 </div>
                             @endif
 
@@ -136,4 +149,20 @@
 
         </div>
     </div>
+
+    <script>
+        function gantiTanggal(tanggalBaru) {
+            Swal.fire({
+                title: 'Mencari Jadwal...',
+                text: 'Sedang mengecek ketersediaan jam.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Reload halaman dengan menambahkan parameter ?tanggal=YYYY-MM-DD
+            window.location.href = "?tanggal=" + tanggalBaru;
+        }
+    </script>
 </x-app-layout>

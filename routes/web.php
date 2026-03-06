@@ -32,8 +32,8 @@ use App\Http\Controllers\Apoteker\DashboardController as ApotekerDashboard;
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
-    // 1. Ambil maksimal 4 dokter terbaru untuk ditampilkan
-    $dokters = Dokter::latest()->take(4)->get();
+    // 1. Ambil maksimal 4 dokter terbaru BESERTA JADWALNYA (tambah ->with('jadwals'))
+    $dokters = Dokter::with('jadwals')->latest()->take(4)->get();
 
     // 2. Ambil daftar layanan (mengambil daftar 'spesialis' unik dari tabel dokter)
     $layanans = Dokter::select('spesialis')->distinct()->get();
