@@ -15,7 +15,7 @@
         </script>
     @endif
 
-    <div class="py-8 md:py-12 bg-slate-50 min-h-screen" x-data="{ showHistoryModal: false, showSpesialisModal: false, showDokterModal: false }">
+    <div class="py-8 md:py-12 bg-slate-50 min-h-screen relative" x-data="{ showHistoryModal: false, showSpesialisModal: false, showDokterModal: false }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
             
             <div class="bg-gradient-to-r from-blue-700 to-blue-500 rounded-[2rem] p-8 md:p-10 shadow-lg shadow-blue-200 relative overflow-hidden text-white">

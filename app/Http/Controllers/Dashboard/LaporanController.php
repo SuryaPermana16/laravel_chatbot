@@ -12,11 +12,9 @@ class LaporanController extends Controller
     // 1. HALAMAN UTAMA LAPORAN (Lihat Tabel + Filter)
     public function index(Request $request)
     {
-        // Default: Tampilkan data hari ini jika tidak ada filter
-        $startDate = $request->input('start_date', date('Y-m-01')); // Default tgl 1 bulan ini
-        $endDate = $request->input('end_date', date('Y-m-d'));      // Default hari ini
+        $startDate = $request->input('start_date', date('Y-m-01'));
+        $endDate = $request->input('end_date', date('Y-m-d'));      
 
-        // Query Data Lunas ('diambil')
         $kunjungans = Kunjungan::with(['pasien', 'dokter'])
             ->where('status', 'diambil')
             ->whereDate('updated_at', '>=', $startDate)
@@ -24,10 +22,19 @@ class LaporanController extends Controller
             ->latest()
             ->get();
 
-        // Hitung Total Uang Masuk
-        $totalPemasukan = $kunjungans->sum('total_bayar');
+        // [UPDATE]: PERHITUNGAN KEUANGAN DIPISAH (UMUM vs BPJS)
+        // 1. Total Tunai = Menjumlahkan kolom 'total_bayar'
+        $totalTunai = $kunjungans->sum('total_bayar');
+        
+        // 2. Total Klaim BPJS = Menjumlahkan (Jasa + Obat) khusus yang statusnya Klaim BPJS
+        $totalKlaimBpjs = $kunjungans->where('status_pembayaran', 'Klaim BPJS')->sum(function($k) {
+            return $k->biaya_jasa_dokter + $k->biaya_obat;
+        });
 
-        return view('admin.laporan.index', compact('kunjungans', 'startDate', 'endDate', 'totalPemasukan'));
+        // 3. Grand Total Omzet = Tunai + BPJS
+        $totalOmzet = $totalTunai + $totalKlaimBpjs;
+
+        return view('admin.laporan.index', compact('kunjungans', 'startDate', 'endDate', 'totalTunai', 'totalKlaimBpjs', 'totalOmzet'));
     }
 
     // 2. EXPORT KE PDF
@@ -42,9 +49,14 @@ class LaporanController extends Controller
             ->whereDate('updated_at', '<=', $tgl_akhir)
             ->get();
 
-        $total_pemasukan = $kunjungans->sum('total_bayar');
+        // Sama seperti index, pisahkan perhitungannya untuk PDF
+        $total_tunai = $kunjungans->sum('total_bayar');
+        $total_klaim = $kunjungans->where('status_pembayaran', 'Klaim BPJS')->sum(function($k) {
+            return $k->biaya_jasa_dokter + $k->biaya_obat;
+        });
+        $grand_total = $total_tunai + $total_klaim;
 
-        $pdf = Pdf::loadView('admin.laporan.cetak', compact('kunjungans', 'tgl_awal', 'tgl_akhir', 'total_pemasukan'));
+        $pdf = Pdf::loadView('admin.laporan.cetak', compact('kunjungans', 'tgl_awal', 'tgl_akhir', 'total_tunai', 'total_klaim', 'grand_total'));
         $pdf->setPaper('A4', 'landscape');
 
         return $pdf->stream('Laporan-Keuangan.pdf');
@@ -73,17 +85,21 @@ class LaporanController extends Controller
 
         $callback = function() use ($kunjungans) {
             $file = fopen('php://output', 'w');
-            fputcsv($file, ['Tanggal', 'Pasien', 'Dokter', 'Diagnosa', 'Biaya Jasa', 'Biaya Obat', 'Total Bayar']);
+            fputcsv($file, ['Tanggal', 'Pasien', 'Dokter', 'Diagnosa', 'Metode Bayar', 'Biaya Jasa', 'Biaya Obat', 'Total Asli (Omzet)', 'Dibayar Pasien (Tunai)']);
 
             foreach ($kunjungans as $row) {
+                $totalAsli = $row->biaya_jasa_dokter + $row->biaya_obat;
+                
                 fputcsv($file, [
                     $row->updated_at->format('Y-m-d'),
                     $row->pasien->nama_lengkap,
                     $row->dokter->nama_lengkap,
                     $row->diagnosa,
+                    $row->status_pembayaran, // Menampilkan Lunas / Klaim BPJS
                     $row->biaya_jasa_dokter,
                     $row->biaya_obat,
-                    $row->total_bayar
+                    $totalAsli,          // Harga asli untuk Omzet
+                    $row->total_bayar    // Uang riil yang masuk laci kasir (0 jika BPJS)
                 ]);
             }
             fclose($file);

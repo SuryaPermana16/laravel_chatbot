@@ -155,7 +155,7 @@
                                         </div>
                                     </td>
                                     <td class="px-8 py-5 text-center">
-                                        <button onclick="openModal('{{ $item->id }}', '{{ $item->pasien->nama_lengkap }}', {{ $item->dokter->harga_jasa }})" 
+                                        <button onclick="openModal('{{ $item->id }}', '{{ addslashes($item->pasien->nama_lengkap) }}', {{ $item->dokter->harga_jasa }})" 
                                             class="inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-blue-700 transition shadow-lg shadow-blue-200 transform hover:-translate-y-0.5 whitespace-nowrap">
                                             <i class="fas fa-cart-plus text-sm"></i> Proses Bayar
                                         </button>
@@ -227,14 +227,22 @@
                                             </div>
                                         </td>
                                         <td class="px-8 py-5 text-right">
-                                            <span class="font-black text-gray-900 text-lg">
-                                                Rp {{ number_format($riwayat->total_bayar, 0, ',', '.') }}
-                                            </span>
+                                            @if($riwayat->status_pembayaran == 'Klaim BPJS')
+                                                <span class="font-black text-emerald-600 text-lg">Rp 0</span>
+                                            @else
+                                                <span class="font-black text-gray-900 text-lg">Rp {{ number_format($riwayat->total_bayar, 0, ',', '.') }}</span>
+                                            @endif
                                         </td>
                                         <td class="px-8 py-5 text-center">
-                                            <span class="inline-flex items-center bg-emerald-50 text-emerald-600 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200 uppercase tracking-wide">
-                                                <i class="fas fa-check mr-1.5"></i> Lunas
-                                            </span>
+                                            @if($riwayat->status_pembayaran == 'Klaim BPJS')
+                                                <span class="inline-flex items-center bg-teal-50 text-teal-700 text-xs font-bold px-3 py-1 rounded-full border border-teal-200 uppercase tracking-wide">
+                                                    <i class="fas fa-shield-alt mr-1.5"></i> BPJS
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center bg-emerald-50 text-emerald-600 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200 uppercase tracking-wide">
+                                                    <i class="fas fa-check mr-1.5"></i> Lunas
+                                                </span>
+                                            @endif
                                         </td>
                                     </tr>
                                     @endforeach
@@ -276,7 +284,15 @@
                     @csrf
                     @method('PATCH')
                     
-                    <div class="p-8 bg-white">
+                    <div class="px-8 py-5 bg-white border-b border-gray-100">
+                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-wallet mr-2 text-gray-400"></i> Kategori Pasien / Pembayaran</label>
+                        <select name="metode_pembayaran" id="metode_pembayaran" onchange="updateGrandTotal()" class="w-full py-3 px-4 rounded-xl border-gray-300 bg-blue-50/50 text-blue-900 font-extrabold shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer transition">
+                            <option value="Umum">Umum (Bayar Mandiri)</option>
+                            <option value="BPJS">BPJS / Asuransi (Gratis Rp 0)</option>
+                        </select>
+                    </div>
+
+                    <div class="px-8 pb-8 pt-5 bg-white">
                         <div class="flex justify-between items-center mb-6 bg-slate-50 p-5 rounded-2xl border border-gray-100">
                             <div>
                                 <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">Nama Pasien</p>
@@ -347,7 +363,7 @@
                                 <span class="block text-emerald-800 font-extrabold uppercase tracking-wider text-sm">Grand Total Bayar</span>
                                 <span class="block text-xs text-emerald-600 mt-1">Jasa Dokter + Total Obat</span>
                             </div>
-                            <span class="text-4xl font-black text-emerald-700">Rp <span id="grandTotal">0</span></span>
+                            <span class="text-4xl font-black text-emerald-700" id="grandTotal">Rp 0</span>
                         </div>
                     </div>
 
@@ -371,11 +387,12 @@
             cart = []; renderCart();
             document.getElementById('searchObat').value = "";
             document.getElementById('inputQty').value = 1;
+            document.getElementById('metode_pembayaran').value = "Umum"; // Default kembali ke umum
             selectedObatTemp = null;
             
-            jasaDokterValue = jasaDokter;
+            jasaDokterValue = parseInt(jasaDokter);
             document.getElementById('modalPasienName').innerText = namaPasien;
-            document.getElementById('modalJasaDokter').innerText = new Intl.NumberFormat('id-ID').format(jasaDokter);
+            document.getElementById('modalJasaDokter').innerText = new Intl.NumberFormat('id-ID').format(jasaDokterValue);
             document.getElementById('paymentForm').action = "/apoteker/dashboard/" + id + "/selesai";
             updateGrandTotal();
             
@@ -476,7 +493,17 @@
 
         function updateGrandTotal() {
             let totalObat = cart.reduce((sum, item) => sum + item.subtotal, 0);
-            document.getElementById('grandTotal').innerText = new Intl.NumberFormat('id-ID').format(totalObat + jasaDokterValue);
+            let totalAsli = totalObat + jasaDokterValue;
+            let metode = document.getElementById('metode_pembayaran').value;
+            let grandTotalLabel = document.getElementById('grandTotal');
+
+            if (metode === 'BPJS') {
+                // Efek coret kalau BPJS
+                grandTotalLabel.innerHTML = `<span class="line-through text-emerald-300 text-2xl mr-2">Rp ${new Intl.NumberFormat('id-ID').format(totalAsli)}</span> Rp 0 <span class="text-sm tracking-normal font-bold">(BPJS)</span>`;
+            } else {
+                // Normal
+                grandTotalLabel.innerHTML = `Rp ${new Intl.NumberFormat('id-ID').format(totalAsli)}`;
+            }
         }
 
         // Close dropdown when clicking outside

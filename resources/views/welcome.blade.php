@@ -26,18 +26,6 @@
 </head>
 <body class="font-sans antialiased text-gray-800 bg-white selection:bg-primary selection:text-white">
 
-    <div class="bg-primary text-white text-xs md:text-sm py-2 px-4 hidden md:block">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex space-x-6">
-                <span><i class="fas fa-phone-alt mr-2"></i>+62 812 3456 7890</span>
-                <span><i class="fas fa-envelope mr-2"></i>info@klinik.com</span>
-            </div>
-            <div>
-                <span><i class="far fa-clock mr-2"></i>Setiap Hari: 08:00 - 20:30</span>
-            </div>
-        </div>
-    </div>
-
     <nav class="bg-white shadow-sm sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-20 items-center">
@@ -57,7 +45,7 @@
                         @auth
                             <a href="{{ url('/dashboard') }}" class="bg-primary text-white px-6 py-2.5 rounded-full hover:bg-secondary transition shadow-lg shadow-blue-200">Dashboard</a>
                         @else
-                            <a href="#portal-akses" class="bg-primary text-white px-6 py-2.5 rounded-full hover:bg-secondary transition shadow-lg shadow-blue-200">
+                            <a href="{{ route('login') }}" class="bg-primary text-white px-6 py-2.5 rounded-full hover:bg-secondary transition shadow-lg shadow-blue-200">
                                 Login / Daftar
                             </a>
                         @endauth
@@ -325,39 +313,58 @@
         </div>
     </section>
 
-    <section id="portal-akses" class="py-20 bg-white border-y border-gray-50">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl md:text-4xl font-extrabold text-dark mb-4">Bergabung Bersama Kami</h2>
-                <p class="text-gray-600 text-lg">Pilih portal akses sesuai dengan kebutuhan Anda untuk memulai.</p>
+    <section id="cara-daftar" class="py-20 bg-blue-50/50 border-y border-blue-100 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-primary font-bold tracking-wider uppercase text-sm mb-2 block">Pendaftaran Online</span>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-dark mb-4">4 Langkah Mudah Berobat</h2>
+                <p class="text-gray-600 text-lg">Tidak perlu antre berjam-jam di ruang tunggu. Nikmati kemudahan reservasi jadwal dokter dari rumah Anda.</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="bg-white rounded-3xl p-8 md:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 transform hover:-translate-y-2 transition duration-300">
-                    <div class="w-16 h-16 bg-blue-50 text-primary rounded-2xl flex items-center justify-center text-3xl mb-6">
-                        <i class="fas fa-user-plus"></i>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 relative">
+                <div class="hidden lg:block absolute top-10 left-[12%] right-[12%] h-1 bg-gradient-to-r from-blue-200 via-primary to-blue-200 z-0 rounded-full opacity-50"></div>
+
+                <div class="relative z-10 flex flex-col items-center text-center group">
+                    <div class="w-20 h-20 bg-white rounded-2xl shadow-xl shadow-blue-100 border border-gray-100 flex items-center justify-center text-3xl text-primary mb-6 transform group-hover:-translate-y-2 group-hover:scale-110 transition duration-300">
+                        <i class="fas fa-mobile-alt"></i>
                     </div>
-                    <h3 class="text-2xl font-bold text-dark mb-4">Pasien Baru</h3>
-                    <p class="text-gray-600 mb-8 leading-relaxed">
-                        Belum punya akun? Daftar sekarang untuk membuat janji temu, melihat riwayat medis, dan mengelola profil kesehatan Anda.
-                    </p>
-                    <a href="{{ route('register') }}" class="block w-full bg-primary hover:bg-secondary text-white text-center font-bold py-4 px-6 rounded-xl shadow-lg shadow-blue-200 transition">
-                        Buat Akun Sekarang
-                    </a>
+                    <div class="bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center font-bold absolute top-14 -right-2 border-4 border-blue-50">1</div>
+                    <h3 class="text-xl font-bold text-dark mb-2">Login / Daftar</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">Masuk ke portal pasien atau buat akun baru jika Anda belum terdaftar.</p>
                 </div>
 
-                <div class="bg-white rounded-3xl p-8 md:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 transform hover:-translate-y-2 transition duration-300">
-                    <div class="w-16 h-16 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center text-3xl mb-6">
-                        <i class="fas fa-sign-in-alt"></i>
+                <div class="relative z-10 flex flex-col items-center text-center group">
+                    <div class="w-20 h-20 bg-white rounded-2xl shadow-xl shadow-blue-100 border border-gray-100 flex items-center justify-center text-3xl text-primary mb-6 transform group-hover:-translate-y-2 group-hover:scale-110 transition duration-300">
+                        <i class="fas fa-user-md"></i>
                     </div>
-                    <h3 class="text-2xl font-bold text-dark mb-4">Sudah Punya Akun?</h3>
-                    <p class="text-gray-600 mb-8 leading-relaxed">
-                        Portal login untuk semua pengguna terdaftar. Baik Anda sebagai <strong>Pasien, Dokter, ataupun Admin Klinik</strong>.
-                    </p>
-                    <a href="{{ route('login') }}" class="block w-full bg-slate-800 hover:bg-dark text-white text-center font-bold py-4 px-6 rounded-xl shadow-lg transition">
-                        Masuk ke Dashboard
-                    </a>
+                    <div class="bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center font-bold absolute top-14 -right-2 border-4 border-blue-50">2</div>
+                    <h3 class="text-xl font-bold text-dark mb-2">Pilih Dokter</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">Pilih poli layanan, dokter spesialis, dan tentukan tanggal kunjungan.</p>
                 </div>
+
+                <div class="relative z-10 flex flex-col items-center text-center group">
+                    <div class="w-20 h-20 bg-white rounded-2xl shadow-xl shadow-blue-100 border border-gray-100 flex items-center justify-center text-3xl text-primary mb-6 transform group-hover:-translate-y-2 group-hover:scale-110 transition duration-300">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <div class="bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center font-bold absolute top-14 -right-2 border-4 border-blue-50">3</div>
+                    <h3 class="text-xl font-bold text-dark mb-2">Dapat Antrean</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">Sistem akan memberikan nomor antrean dan estimasi jam periksa Anda.</p>
+                </div>
+
+                <div class="relative z-10 flex flex-col items-center text-center group">
+                    <div class="w-20 h-20 bg-white rounded-2xl shadow-xl shadow-blue-100 border border-gray-100 flex items-center justify-center text-3xl text-primary mb-6 transform group-hover:-translate-y-2 group-hover:scale-110 transition duration-300">
+                        <i class="fas fa-clinic-medical"></i>
+                    </div>
+                    <div class="bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center font-bold absolute top-14 -right-2 border-4 border-blue-50">4</div>
+                    <h3 class="text-xl font-bold text-dark mb-2">Datang ke Klinik</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">Datang ke klinik sesuai jadwal tanpa perlu menunggu lama lagi.</p>
+                </div>
+            </div>
+            
+            <div class="mt-16 text-center">
+                <a href="{{ route('register') }}" class="inline-block bg-gray-900 hover:bg-primary text-white font-bold px-8 py-4 rounded-xl shadow-lg transition duration-300 transform hover:-translate-y-1">
+                    Mulai Reservasi Sekarang <i class="fas fa-arrow-right ml-2"></i>
+                </a>
             </div>
         </div>
     </section>

@@ -58,18 +58,37 @@ class ChatbotController extends Controller
                 $bestKbMatch = null;
                 $highestSimilarity = 0;
 
-                // 3. Pencarian Semantic menggunakan Algoritma Cosine Similarity
+               // 3. Pencarian Semantic: Ambil semua yang relevan (bukan cuma 1)
+                $matches = [];
                 foreach ($kbs as $kb) {
                     $kbVector = json_decode($kb->embedding, true);
                     if ($kbVector) {
                         $similarity = $this->calculateCosineSimilarity($queryVector, $kbVector);
 
-                        // Ambang batas kemiripan (threshold) 0.15
-                        if ($similarity > 0.15 && $similarity > $highestSimilarity) {
-                            $highestSimilarity = $similarity;
-                            $bestKbMatch = $kb;
+                        // Ambil semua data yang tingkat kemiripannya di atas 0.15
+                        if ($similarity > 0.15) {
+                            $matches[] = [
+                                'jawaban' => $kb->jawaban,
+                                'kategori' => $kb->kategori,
+                                'score' => $similarity
+                            ];
                         }
                     }
+                }
+
+                // 4. Urutkan dari yang paling mirip & ambil 3 teratas saja agar tidak kepenuhan
+                usort($matches, function($a, $b) {
+                    return $b['score'] <=> $a['score'];
+                });
+                $topMatches = array_slice($matches, 0, 3);
+
+                // 5. Masukkan ke Konteks Data
+                if (count($topMatches) > 0) {
+                    $contextData .= "[DATA KNOWLEDGE BASE]\n";
+                    foreach ($topMatches as $m) {
+                        $contextData .= "Topik ({$m['kategori']}): {$m['jawaban']}\n";
+                    }
+                    $contextData .= "Sumber Data: Basis Pengetahuan Internal\n\n";
                 }
 
                 if ($bestKbMatch) {

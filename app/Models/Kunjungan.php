@@ -24,6 +24,7 @@ class Kunjungan extends Model
         'biaya_jasa_dokter',
         'biaya_obat',
         'total_bayar',
+        'status_pembayaran', // <--- INI TAMBAHANNYA KAK
     ];
 
     public function pasien()

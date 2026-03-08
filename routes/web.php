@@ -174,6 +174,7 @@ Route::middleware(['auth', 'verified'])->prefix('user')->name('user.')->group(fu
     Route::get('/dashboard', [UserDashboard::class, 'index'])->name('dashboard');
     Route::get('/daftar/{id_jadwal}', [PendaftaranController::class, 'showForm'])->name('daftar');
     Route::post('/daftar/{id_jadwal}', [PendaftaranController::class, 'store'])->name('daftar.store');
+    Route::post('/chat-ai/send', [\App\Http\Controllers\User\UserChatbotController::class, 'sendMessage'])->name('chat-ai.send');
 });
 
 /*
