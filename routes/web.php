@@ -133,7 +133,15 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Kelola Admin (SESAMA ADMIN)
     Route::resource('kelola-admin', \App\Http\Controllers\Dashboard\KelolaAdminController::class);
 
-   // Kelola FAQ
+   // ==========================================================
+    // Kelola Knowledge Base (FAQ Manual & Upload PDF AI)
+    // ==========================================================
+    Route::controller(KnowledgeBaseController::class)->prefix('knowledge-base')->name('kb.')->group(function () {
+        // Route untuk PDF harus di atas route resource agar tidak tertimpa parameter {id}
+        Route::get('/upload-pdf', 'createPdf')->name('create_pdf');
+        Route::post('/store-pdf', 'storePdf')->name('store_pdf');
+    });
+    // Route resource untuk fitur CRUD manual FAQ
     Route::resource('knowledge-base', \App\Http\Controllers\Dashboard\KnowledgeBaseController::class)->names('kb');
 });
 

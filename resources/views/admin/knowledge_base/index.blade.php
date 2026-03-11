@@ -33,9 +33,14 @@
 
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-xl font-extrabold text-gray-900">Database Pengetahuan Chatbot</h3>
-                <a href="{{ route('admin.kb.create') }}" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg shadow-cyan-200 transition-all flex items-center gap-2">
-                    <i class="fas fa-plus"></i> Tambah FAQ
-                </a>
+                <div class="flex gap-3">
+                    <a href="{{ route('admin.kb.create_pdf') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg shadow-indigo-200 transition-all flex items-center gap-2">
+                        <i class="fas fa-file-pdf"></i> Upload PDF SOP
+                    </a>
+                    <a href="{{ route('admin.kb.create') }}" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg shadow-cyan-200 transition-all flex items-center gap-2">
+                        <i class="fas fa-plus"></i> Tambah FAQ
+                    </a>
+                </div>
             </div>
 
             <div class="bg-white overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:rounded-2xl border border-gray-100">
