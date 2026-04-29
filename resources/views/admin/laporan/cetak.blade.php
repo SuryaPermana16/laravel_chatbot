@@ -35,14 +35,13 @@
             border-radius: 4px; display: inline-block; border: 1px solid #e2e8f0;
         }
 
-        /* SUMMARY BOXES (Baru) */
         .summary-container {
             width: 100%;
             margin-bottom: 20px;
         }
         .summary-box {
             display: inline-block;
-            width: 31%; /* 3 Kolom */
+            width: 31%;
             background-color: #f8fafc;
             border: 1px solid #cbd5e1;
             padding: 10px;

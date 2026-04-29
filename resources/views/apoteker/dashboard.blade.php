@@ -62,7 +62,6 @@
                                     <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Obat</th>
                                     <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Harga Satuan</th>
                                     <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Sisa Stok</th>
-                                    <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Update Cepat</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50 bg-white">
@@ -70,7 +69,6 @@
                                 <tr class="hover:bg-teal-50/30 transition duration-150 group">
                                     <td class="px-6 py-3">
                                         <div class="font-bold text-gray-800 text-sm">{{ $obat->nama_obat }}</div>
-                                        <div class="text-[10px] text-gray-400 font-bold tracking-wider uppercase mt-0.5">{{ $obat->jenis_obat ?? $obat->satuan }}</div>
                                     </td>
                                     <td class="px-6 py-3">
                                         <span class="text-emerald-700 font-bold text-sm bg-emerald-50 px-2.5 py-1 rounded border border-emerald-100">
@@ -84,21 +82,10 @@
                                             <span class="inline-block text-gray-700 font-bold text-sm bg-gray-50 border border-gray-200 px-3 py-1 rounded-lg">{{ $obat->stok }}</span>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-3 text-center">
-                                        <form action="{{ route('apoteker.obat.updateStok', $obat->id) }}" method="POST" class="flex justify-center items-center gap-2 opacity-100 sm:opacity-50 group-hover:opacity-100 transition-opacity">
-                                            @csrf
-                                            @method('PATCH')
-                                            <input type="number" name="stok" value="{{ $obat->stok }}" 
-                                                class="w-16 text-center text-sm font-bold border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500 py-1.5 outline-none" required>
-                                            <button type="submit" class="bg-teal-100 text-teal-600 hover:bg-teal-600 hover:text-white transition rounded-lg p-2" title="Simpan Perubahan Stok">
-                                                <i class="fas fa-save"></i>
-                                            </button>
-                                        </form>
-                                    </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="4" class="px-6 py-10 text-center text-gray-400 italic">Belum ada data obat di inventaris.</td>
+                                    <td colspan="3" class="px-6 py-10 text-center text-gray-400 italic">Belum ada data obat di inventaris.</td>
                                 </tr>
                                 @endforelse
                             </tbody>
@@ -127,12 +114,37 @@
                                 <tr>
                                     <th class="px-8 py-5 text-center text-xs font-bold text-gray-500 uppercase tracking-wider w-24">No</th>
                                     <th class="px-8 py-5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Info Pasien & Dokter</th>
-                                    <th class="px-8 py-5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-1/2">Catatan Resep Obat</th>
+                                    <th class="px-8 py-5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-1/2">Daftar Resep Obat</th>
                                     <th class="px-8 py-5 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Aksi Kasir</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100 bg-white">
                                 @forelse($antreanObat as $item)
+                                
+                                @php
+                                    $totalBiayaObat = 0;
+                                    $resepDetails = [];
+                                    $resepListHtml = '';
+                                    
+                                    $rekamMedis = \App\Models\RekamMedis::where('kunjungan_id', $item->id)->first();
+                                    $reseps = $rekamMedis ? \App\Models\ResepObat::where('rekam_medis_id', $rekamMedis->id)->get() : collect();
+                                    
+                                    foreach($reseps as $resep) {
+                                        $obat = \App\Models\Obat::find($resep->obat_id);
+                                        if($obat) {
+                                            $subtotal = $obat->harga * $resep->jumlah;
+                                            $totalBiayaObat += $subtotal;
+                                            $resepDetails[] = $obat->nama_obat . ' (' . $resep->jumlah . ' pcs) - ' . $resep->dosis;
+                                            
+                                            $resepListHtml .= '<tr class="hover:bg-slate-50 border-b border-gray-100"><td class="px-5 py-4 font-bold text-gray-800 text-sm">'.$obat->nama_obat.'<div class="text-xs text-gray-400 font-normal mt-1"><i class="fas fa-info-circle"></i> '.$resep->dosis.'</div></td><td class="px-5 py-4 text-center"><span class="bg-slate-100 px-3 py-1 rounded-lg font-bold text-sm border border-slate-200">'.$resep->jumlah.'</span></td><td class="px-5 py-4 text-right font-mono text-gray-700 font-medium">Rp '.number_format($subtotal, 0, ",", ".").'</td></tr>';
+                                        }
+                                    }
+
+                                    if($reseps->isEmpty()) {
+                                        $resepListHtml = '<tr><td colspan="3" class="px-5 py-8 text-center text-gray-400 italic"><i class="fas fa-ban mb-2 text-2xl block"></i>Tidak ada resep obat.</td></tr>';
+                                    }
+                                @endphp
+
                                 <tr class="hover:bg-blue-50/30 transition duration-200">
                                     <td class="px-8 py-5 text-center">
                                         <span class="inline-block bg-gray-900 text-white font-extrabold text-base px-4 py-2 rounded-xl shadow-sm whitespace-nowrap">
@@ -142,22 +154,31 @@
                                     <td class="px-8 py-5">
                                         <div class="font-bold text-gray-900 text-base mb-1">{{ $item->pasien->nama_lengkap }}</div>
                                         <div class="text-xs font-medium text-gray-500 flex items-center gap-2">
-                                            <span class="bg-gray-100 px-2 py-0.5 rounded border border-gray-200"><i class="fas fa-user-md mr-1 text-gray-400"></i>Dr. {{ $item->dokter->nama_lengkap }}</span>
+                                            <span class="bg-gray-100 px-2 py-0.5 rounded border border-gray-200"><i class="fas fa-user-md mr-1 text-gray-400"></i>{{ $item->dokter->nama_lengkap }}</span>
                                         </div>
                                     </td>
                                     <td class="px-8 py-5">
-                                        <div class="text-sm text-gray-700 bg-yellow-50/50 p-4 rounded-xl border border-yellow-100 leading-relaxed font-medium">
-                                            @if($item->resep_obat)
-                                                {!! nl2br(e($item->resep_obat)) !!}
+                                        <div class="text-sm text-gray-700 bg-yellow-50/50 p-4 rounded-xl border border-yellow-100 font-medium">
+                                            @if(count($resepDetails) > 0)
+                                                <ul class="list-disc pl-4 space-y-1">
+                                                    @foreach($resepDetails as $detail)
+                                                        <li>{{ $detail }}</li>
+                                                    @endforeach
+                                                </ul>
                                             @else
                                                 <span class="italic text-gray-400">Tidak ada resep obat (hanya bayar jasa).</span>
                                             @endif
                                         </div>
                                     </td>
                                     <td class="px-8 py-5 text-center">
-                                        <button onclick="openModal('{{ $item->id }}', '{{ addslashes($item->pasien->nama_lengkap) }}', {{ $item->dokter->harga_jasa }})" 
+                                        <button onclick="openModal(this)" 
+                                            data-id="{{ $item->id }}" 
+                                            data-nama="{{ $item->pasien->nama_lengkap }}"
+                                            data-jasa="{{ $item->dokter->harga_jasa }}"
+                                            data-total-obat="{{ $totalBiayaObat }}"
                                             class="inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-blue-700 transition shadow-lg shadow-blue-200 transform hover:-translate-y-0.5 whitespace-nowrap">
                                             <i class="fas fa-cart-plus text-sm"></i> Proses Bayar
+                                            <template class="resep-html">{!! $resepListHtml !!}</template>
                                         </button>
                                     </td>
                                 </tr>
@@ -214,7 +235,7 @@
                                         </td>
                                         <td class="px-8 py-5">
                                             <div class="font-bold text-gray-900">{{ $riwayat->pasien->nama_lengkap }}</div>
-                                            <div class="text-xs font-medium text-gray-500 mt-0.5">Dr. {{ $riwayat->dokter->nama_lengkap }}</div>
+                                            <div class="text-xs font-medium text-gray-500 mt-0.5">{{ $riwayat->dokter->nama_lengkap }}</div>
                                         </td>
                                         <td class="px-8 py-5">
                                             <div class="flex flex-col gap-1.5">
@@ -285,7 +306,7 @@
                     @method('PATCH')
                     
                     <div class="px-8 py-5 bg-white border-b border-gray-100">
-                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-wallet mr-2 text-gray-400"></i> Kategori Pasien / Pembayaran</label>
+                        <label class="block text-sm font-bold text-gray-800 mb-2"><i class="fas fa-wallet mr-2 text-gray-400"></i> Kategori Pembayaran</label>
                         <select name="metode_pembayaran" id="metode_pembayaran" onchange="updateGrandTotal()" class="w-full py-3 px-4 rounded-xl border-gray-300 bg-blue-50/50 text-blue-900 font-extrabold shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer transition">
                             <option value="Umum">Umum (Bayar Mandiri)</option>
                             <option value="BPJS">BPJS / Asuransi (Gratis Rp 0)</option>
@@ -304,58 +325,17 @@
                             </div>
                         </div>
 
-                        <div class="mb-6 relative bg-white border border-gray-200 p-5 rounded-2xl shadow-sm">
-                            <label class="block text-sm font-bold text-gray-800 mb-3"><i class="fas fa-search mr-2 text-gray-400"></i> Cari & Masukkan Obat</label>
-                            <div class="flex flex-col sm:flex-row gap-3">
-                                <div class="relative flex-1">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i class="fas fa-pills text-gray-400"></i>
-                                    </div>
-                                    <input type="text" id="searchObat" 
-                                           class="w-full pl-10 pr-4 py-3 rounded-xl border-gray-200 bg-slate-50 focus:bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition" 
-                                           placeholder="Ketik nama obat di sini..." autocomplete="off" onkeyup="filterObat()">
-                                    
-                                    <div id="obatDropdownList" class="hidden absolute z-20 w-full bg-white border border-gray-200 mt-2 rounded-xl shadow-2xl max-h-56 overflow-y-auto">
-                                        @foreach($obats as $obat)
-                                            <div class="obat-option px-5 py-3 hover:bg-blue-50 cursor-pointer border-b border-gray-50 transition"
-                                                 onclick="selectObat('{{ $obat->id }}', '{{ addslashes($obat->nama_obat) }}', '{{ $obat->harga }}', '{{ $obat->stok }}')"
-                                                 data-nama="{{ strtolower($obat->nama_obat) }}">
-                                                <div class="flex justify-between items-center mb-1">
-                                                    <span class="font-bold text-gray-800">{{ $obat->nama_obat }}</span>
-                                                    <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 uppercase">Sisa: {{ $obat->stok }}</span>
-                                                </div>
-                                                <div class="text-sm font-medium text-gray-500">Rp {{ number_format($obat->harga, 0, ',', '.') }} / {{ $obat->satuan ?? 'pcs' }}</div>
-                                            </div>
-                                        @endforeach
-                                        <div id="noObatFound" class="hidden px-5 py-4 text-sm text-gray-500 text-center italic bg-gray-50">Tidak ada obat yang cocok.</div>
-                                    </div>
-                                </div>
-
-                                <div class="flex gap-3">
-                                    <input type="number" id="inputQty" class="w-20 py-3 rounded-xl border-gray-200 bg-slate-50 text-center font-bold text-gray-700 shadow-sm focus:border-blue-500 outline-none" placeholder="Qty" min="1" value="1">
-                                    <button type="button" onclick="addObatToTable()" class="bg-gray-900 hover:bg-black text-white px-5 py-3 rounded-xl font-bold shadow-md transition flex items-center justify-center gap-2">
-                                        <i class="fas fa-plus"></i> <span class="hidden sm:inline">Add</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
                         <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-6 shadow-sm">
                             <table class="min-w-full text-left">
                                 <thead class="bg-gray-50 border-b border-gray-200">
                                     <tr>
-                                        <th class="px-5 py-3 text-xs font-bold text-gray-500 uppercase">Daftar Obat Dibeli</th>
+                                        <th class="px-5 py-3 text-xs font-bold text-gray-500 uppercase">Daftar Obat Diresepkan</th>
                                         <th class="px-5 py-3 text-center text-xs font-bold text-gray-500 uppercase">Qty</th>
                                         <th class="px-5 py-3 text-right text-xs font-bold text-gray-500 uppercase">Subtotal</th>
-                                        <th class="px-5 py-3 text-center text-xs font-bold text-gray-500 uppercase"><i class="fas fa-trash-alt"></i></th>
                                     </tr>
                                 </thead>
                                 <tbody id="cartTableBody" class="divide-y divide-gray-100"></tbody>
                             </table>
-                            <div id="emptyCartMessage" class="p-8 text-center text-gray-400 flex flex-col items-center">
-                                <i class="fas fa-shopping-basket text-4xl mb-3 text-gray-200"></i>
-                                <span class="font-medium text-sm">Keranjang obat masih kosong.</span>
-                            </div>
                         </div>
 
                         <div class="flex justify-between items-center bg-emerald-50 p-6 rounded-2xl border border-emerald-200">
@@ -379,25 +359,39 @@
     </div>
 
     <script>
-        let cart = [];
         let jasaDokterValue = 0;
-        let selectedObatTemp = null; 
+        let totalObatValue = 0;
 
-        function openModal(id, namaPasien, jasaDokter) {
-            cart = []; renderCart();
-            document.getElementById('searchObat').value = "";
-            document.getElementById('inputQty').value = 1;
-            document.getElementById('metode_pembayaran').value = "Umum"; // Default kembali ke umum
-            selectedObatTemp = null;
+        function openModal(btn) {
+            let id = btn.getAttribute('data-id');
+            let namaPasien = btn.getAttribute('data-nama');
+            jasaDokterValue = parseInt(btn.getAttribute('data-jasa')) || 0;
+            totalObatValue = parseInt(btn.getAttribute('data-total-obat')) || 0;
             
-            jasaDokterValue = parseInt(jasaDokter);
+            let resepTemplate = btn.querySelector('.resep-html').innerHTML;
+            document.getElementById('cartTableBody').innerHTML = resepTemplate;
+            
+            document.getElementById('metode_pembayaran').value = "Umum"; 
             document.getElementById('modalPasienName').innerText = namaPasien;
             document.getElementById('modalJasaDokter').innerText = new Intl.NumberFormat('id-ID').format(jasaDokterValue);
             document.getElementById('paymentForm').action = "/apoteker/dashboard/" + id + "/selesai";
+            
             updateGrandTotal();
             
             document.getElementById('minimizedIndicator').style.display = 'none';
             document.getElementById('paymentModal').classList.remove('hidden');
+        }
+
+        function updateGrandTotal() {
+            let totalAsli = totalObatValue + jasaDokterValue;
+            let metode = document.getElementById('metode_pembayaran').value;
+            let grandTotalLabel = document.getElementById('grandTotal');
+
+            if (metode === 'BPJS') {
+                grandTotalLabel.innerHTML = `<span class="line-through text-emerald-300 text-2xl mr-2">Rp ${new Intl.NumberFormat('id-ID').format(totalAsli)}</span> Rp 0 <span class="text-sm tracking-normal font-bold text-emerald-700 ml-2">(BPJS)</span>`;
+            } else {
+                grandTotalLabel.innerHTML = `Rp ${new Intl.NumberFormat('id-ID').format(totalAsli)}`;
+            }
         }
 
         function closeModal() { 
@@ -414,102 +408,5 @@
             document.getElementById('paymentModal').classList.remove('hidden');
             document.getElementById('minimizedIndicator').style.display = 'none';
         }
-
-        function filterObat() {
-            const input = document.getElementById('searchObat').value.toLowerCase();
-            const dropdown = document.getElementById('obatDropdownList');
-            const options = dropdown.getElementsByClassName('obat-option');
-            const noFound = document.getElementById('noObatFound');
-            let hasResult = false;
-
-            if(input.length > 0) { dropdown.classList.remove('hidden'); } else { dropdown.classList.add('hidden'); }
-
-            for (let i = 0; i < options.length; i++) {
-                const nama = options[i].getAttribute('data-nama');
-                if (nama.includes(input)) { options[i].style.display = ""; hasResult = true; } 
-                else { options[i].style.display = "none"; }
-            }
-            if(!hasResult) { noFound.classList.remove('hidden'); } else { noFound.classList.add('hidden'); }
-        }
-
-        function selectObat(id, nama, harga, stok) {
-            document.getElementById('searchObat').value = nama;
-            document.getElementById('obatDropdownList').classList.add('hidden');
-            selectedObatTemp = { id: id, nama: nama, harga: parseInt(harga), stok: parseInt(stok) };
-        }
-
-        function addObatToTable() {
-            const qtyInput = document.getElementById('inputQty');
-            const qty = parseInt(qtyInput.value);
-
-            if (!selectedObatTemp) { Swal.fire('Pilih Obat', 'Silakan cari dan klik obat dari dropdown terlebih dahulu.', 'warning'); return; }
-            if (qty > selectedObatTemp.stok) { Swal.fire('Stok Tidak Cukup!', 'Sisa stok ' + selectedObatTemp.nama + ' hanya ' + selectedObatTemp.stok, 'error'); return; }
-
-            const existingItem = cart.find(item => item.id === selectedObatTemp.id);
-            if (existingItem) {
-                if (existingItem.qty + qty > selectedObatTemp.stok) { Swal.fire('Stok Tidak Cukup!', 'Total obat ini di keranjang melebihi stok yang ada.', 'error'); return; }
-                existingItem.qty += qty;
-                existingItem.subtotal = existingItem.qty * selectedObatTemp.harga;
-            } else {
-                cart.push({ id: selectedObatTemp.id, nama: selectedObatTemp.nama, harga: selectedObatTemp.harga, qty: qty, subtotal: qty * selectedObatTemp.harga });
-            }
-            renderCart(); updateGrandTotal();
-            
-            // Reset input
-            document.getElementById('searchObat').value = "";
-            document.getElementById('inputQty').value = 1;
-            selectedObatTemp = null; 
-            document.getElementById('searchObat').focus();
-        }
-
-        function removeObat(index) { cart.splice(index, 1); renderCart(); updateGrandTotal(); }
-
-        function renderCart() {
-            const tbody = document.getElementById('cartTableBody');
-            const emptyMsg = document.getElementById('emptyCartMessage');
-            tbody.innerHTML = '';
-
-            if (cart.length === 0) { emptyMsg.classList.remove('hidden'); } 
-            else {
-                emptyMsg.classList.add('hidden');
-                cart.forEach((item, index) => {
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-slate-50">
-                            <td class="px-5 py-3 font-bold text-gray-800 text-sm">${item.nama}<input type="hidden" name="obat_id[]" value="${item.id}"></td>
-                            <td class="px-5 py-3 text-center">
-                                <span class="bg-slate-100 px-3 py-1 rounded-lg font-bold text-sm border border-slate-200">${item.qty}</span>
-                                <input type="hidden" name="jumlah[]" value="${item.qty}">
-                            </td>
-                            <td class="px-5 py-3 text-right font-mono text-gray-700 font-medium">Rp ${new Intl.NumberFormat('id-ID').format(item.subtotal)}</td>
-                            <td class="px-5 py-3 text-center">
-                                <button type="button" onclick="removeObat(${index})" class="text-red-400 hover:text-red-600 bg-red-50 hover:bg-red-100 w-8 h-8 rounded-full transition flex items-center justify-center mx-auto">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </td>
-                        </tr>`;
-                });
-            }
-        }
-
-        function updateGrandTotal() {
-            let totalObat = cart.reduce((sum, item) => sum + item.subtotal, 0);
-            let totalAsli = totalObat + jasaDokterValue;
-            let metode = document.getElementById('metode_pembayaran').value;
-            let grandTotalLabel = document.getElementById('grandTotal');
-
-            if (metode === 'BPJS') {
-                // Efek coret kalau BPJS
-                grandTotalLabel.innerHTML = `<span class="line-through text-emerald-300 text-2xl mr-2">Rp ${new Intl.NumberFormat('id-ID').format(totalAsli)}</span> Rp 0 <span class="text-sm tracking-normal font-bold">(BPJS)</span>`;
-            } else {
-                // Normal
-                grandTotalLabel.innerHTML = `Rp ${new Intl.NumberFormat('id-ID').format(totalAsli)}`;
-            }
-        }
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            const isClickInside = document.getElementById('searchObat').contains(event.target);
-            if (!isClickInside) { document.getElementById('obatDropdownList').classList.add('hidden'); }
-        });
     </script>
 </x-app-layout>

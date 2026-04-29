@@ -12,8 +12,8 @@ class KelolaAdminController extends Controller
 {
     public function index()
     {
-        // Ambil semua user yang rolenya 'admin'
         $admins = User::where('role', 'admin')->latest()->get();
+
         return view('admin.kelola_admin.index', compact('admins'));
     }
 
@@ -25,24 +25,26 @@ class KelolaAdminController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email',
             'password' => 'required|min:6',
         ]);
 
         User::create([
-            'name' => $request->name,
-            'email' => $request->email,
+            'name'     => $request->name,
+            'email'    => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'admin', // Set role otomatis jadi admin
+            'role'     => 'admin',
         ]);
 
-        return redirect()->route('admin.kelola-admin.index')->with('success', 'Admin baru berhasil ditambahkan!');
+        return redirect()->route('admin.kelola-admin.index')
+            ->with('success', 'Admin baru berhasil ditambahkan!');
     }
 
     public function edit($id)
     {
         $admin = User::findOrFail($id);
+
         return view('admin.kelola_admin.edit', compact('admin'));
     }
 
@@ -51,29 +53,31 @@ class KelolaAdminController extends Controller
         $admin = User::findOrFail($id);
 
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name'  => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
         ]);
 
         $data = [
-            'name' => $request->name,
+            'name'  => $request->name,
             'email' => $request->email,
         ];
 
-        // Update password hanya jika diisi
         if ($request->filled('password')) {
-            $request->validate(['password' => 'min:6']);
+            $request->validate([
+                'password' => 'min:6'
+            ]);
+
             $data['password'] = Hash::make($request->password);
         }
 
         $admin->update($data);
 
-        return redirect()->route('admin.kelola-admin.index')->with('success', 'Data admin berhasil diperbarui!');
+        return redirect()->route('admin.kelola-admin.index')
+            ->with('success', 'Data admin berhasil diperbarui!');
     }
 
     public function destroy($id)
     {
-        // Cegah admin menghapus dirinya sendiri
         if (Auth::id() == $id) {
             return back()->with('error', 'Anda tidak bisa menghapus akun sendiri!');
         }
@@ -81,6 +85,7 @@ class KelolaAdminController extends Controller
         $admin = User::findOrFail($id);
         $admin->delete();
 
-        return redirect()->route('admin.kelola-admin.index')->with('success', 'Admin berhasil dihapus!');
+        return redirect()->route('admin.kelola-admin.index')
+            ->with('success', 'Admin berhasil dihapus!');
     }
 }

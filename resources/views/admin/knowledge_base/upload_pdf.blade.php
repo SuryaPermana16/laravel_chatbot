@@ -85,10 +85,8 @@
             const fileNameDisplay = document.getElementById('file-name');
 
             fileInput.addEventListener('change', function(e) {
-                // Jika ada file yang dipilih, tampilkan namanya. Jika batal, kembalikan ke teks awal.
                 if (e.target.files.length > 0) {
                     fileNameDisplay.textContent = e.target.files[0].name;
-                    // Ubah warna teks agar terlihat bahwa file sudah terpilih
                     fileNameDisplay.classList.remove('text-indigo-600');
                     fileNameDisplay.classList.add('text-green-600'); 
                 } else {

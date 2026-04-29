@@ -11,10 +11,20 @@ class Obat extends Model
 
     protected $guarded = ['id'];
 
-    // Relasi balik ke Kunjungan (Opsional, tapi berguna nanti)
     public function kunjungan()
     {
         return $this->belongsToMany(Kunjungan::class, 'kunjungan_obat')
-                    ->withPivot('jumlah', 'harga_satuan', 'subtotal');
+            ->withPivot('jumlah', 'harga_satuan', 'subtotal');
+    }
+
+    protected static function booted()
+    {
+        static::saved(function ($model) {
+            \App\Models\KnowledgeBase::autoSync();
+        });
+
+        static::deleted(function ($model) {
+            \App\Models\KnowledgeBase::autoSync();
+        });
     }
 }

@@ -21,10 +21,9 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
         $request->session()->regenerate();
 
-        $role = $request->user()->role; 
+        $role = $request->user()->role;
         $name = $request->user()->name;
 
-        // Tambahkan pesan sukses login di setiap redirect
         if ($role === 'admin') {
             return redirect()->route('admin.dashboard')
                 ->with('login_success', "Selamat Datang Kembali, Admin $name! 👋");
@@ -37,14 +36,16 @@ class AuthenticatedSessionController extends Controller
         }
 
         return redirect()->route('user.dashboard')
-            ->with('login_success', "Halo $name, selamat datang di portal kesehatan Anda! ✨"); 
+            ->with('login_success', "Halo $name, selamat datang di portal kesehatan Anda! ✨");
     }
 
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect('/');
     }
 }

@@ -19,13 +19,12 @@ class ChatbotController extends Controller
     public function handleChat(Request $request)
     {
         try {
-            // Pembersihan input pesan dari user
             $userMessage = trim($request->input('message', ''));
             if (!$userMessage) return response()->json(['reply' => 'Ada yang bisa saya bantu?']);
 
             $apiKey = env('GEMINI_API_KEY');
 
-            $now = Carbon::now('Asia/Makassar'); 
+            $now = Carbon::now('Asia/Makassar');
             $waktuSekarang = $now->translatedFormat('l, d F Y H:i');
             $jam = $now->hour;
 
@@ -38,34 +37,34 @@ class ChatbotController extends Controller
             } else {
                 $salam = "Selamat malam";
             }
+
             $contextData = "";
 
-            // ==========================================================
-            // TAHAP 1 & 2: EMBEDDING QUERY & VECTOR RETRIEVAL (INTI RAG)
-            // ==========================================================
-            
-            // 1. Mengubah pertanyaan user menjadi vektor numerik
+            // Embedding pertanyaan user
             $embedResponse = Http::post("https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key={$apiKey}", [
                 'model' => 'models/gemini-embedding-001',
-                'content' => ['parts' => [['text' => $userMessage]]]
+                'content' => ['parts' => [['text' => $userMessage]]
+                ]
             ]);
 
             if ($embedResponse->successful()) {
                 $queryVector = $embedResponse->json()['embedding']['values'];
-                
-                // 2. Mengambil basis pengetahuan yang sudah ter-embedding di database
-                $kbs = KnowledgeBase::where('is_active', true)->whereNotNull('embedding')->get();
+
+                $kbs = KnowledgeBase::where('is_active', true)
+                    ->whereNotNull('embedding')
+                    ->get();
+
                 $bestKbMatch = null;
                 $highestSimilarity = 0;
 
-               // 3. Pencarian Semantic: Ambil semua yang relevan (bukan cuma 1)
                 $matches = [];
+
                 foreach ($kbs as $kb) {
                     $kbVector = json_decode($kb->embedding, true);
+
                     if ($kbVector) {
                         $similarity = $this->calculateCosineSimilarity($queryVector, $kbVector);
 
-                        // Ambil semua data yang tingkat kemiripannya di atas 0.15
                         if ($similarity > 0.15) {
                             $matches[] = [
                                 'jawaban' => $kb->jawaban,
@@ -76,18 +75,19 @@ class ChatbotController extends Controller
                     }
                 }
 
-                // 4. Urutkan dari yang paling mirip & ambil 3 teratas saja agar tidak kepenuhan
-                usort($matches, function($a, $b) {
+                usort($matches, function ($a, $b) {
                     return $b['score'] <=> $a['score'];
                 });
+
                 $topMatches = array_slice($matches, 0, 3);
 
-                // 5. Masukkan ke Konteks Data
                 if (count($topMatches) > 0) {
                     $contextData .= "[DATA KNOWLEDGE BASE]\n";
+
                     foreach ($topMatches as $m) {
                         $contextData .= "Topik ({$m['kategori']}): {$m['jawaban']}\n";
                     }
+
                     $contextData .= "Sumber Data: Basis Pengetahuan Internal\n\n";
                 }
 
@@ -95,44 +95,38 @@ class ChatbotController extends Controller
                     $contextData .= "[DATA KNOWLEDGE BASE]\n";
                     $contextData .= "Informasi Terkait: {$bestKbMatch->jawaban}\n";
                     $contextData .= "Sumber Data: {$bestKbMatch->kategori}\n\n";
-                    // Info debug bisa dihapus nanti kalau sudah fix buat skripsi
                     $contextData .= "INFO DEBUG: Kasih tau user kalau skor kemiripan data ini adalah: " . $highestSimilarity . "\n\n";
                 }
             }
 
-            // ==========================================================
-            // TAHAP 2 (Lanjutan): REAL-TIME DATA RETRIEVAL (SQL)
-            // ==========================================================
-            
-            // 1. Data Pasien & Keuangan Global
+            // Data operasional klinik
             $totalPasien = Pasien::count();
             $pasienHariIni = Kunjungan::whereDate('created_at', Carbon::today())->count();
             $pendapatanHariIni = Kunjungan::whereDate('created_at', Carbon::today())->sum('total_bayar') ?? 0;
             $pendapatanKeseluruhan = Kunjungan::sum('total_bayar') ?? 0;
-            
-            // 2. TAMBAHAN: Rekap Pendapatan Harian (30 Hari Terakhir)
+
             $pendapatanHarian = Kunjungan::selectRaw('DATE(created_at) as tanggal, SUM(total_bayar) as total')
-                                ->where('created_at', '>=', Carbon::now('Asia/Makassar')->subDays(30))
-                                ->groupBy('tanggal')
-                                ->orderBy('tanggal', 'asc')
-                                ->get();
-            
+                ->where('created_at', '>=', Carbon::now('Asia/Makassar')->subDays(30))
+                ->groupBy('tanggal')
+                ->orderBy('tanggal', 'asc')
+                ->get();
+
             $rincianHarian = "";
+
             foreach ($pendapatanHarian as $p) {
                 $tglIndo = Carbon::parse($p->tanggal)->translatedFormat('d F Y');
                 $rincianHarian .= "  * {$tglIndo}: Rp " . number_format($p->total, 0, ',', '.') . "\n";
             }
 
-            // 3. Data Penyakit
             $penyakitTeratas = Kunjungan::select('diagnosa')
-                                ->whereNotNull('diagnosa')
-                                ->selectRaw('count(*) as jumlah')
-                                ->groupBy('diagnosa')
-                                ->orderByDesc('jumlah')
-                                ->first();
+                ->whereNotNull('diagnosa')
+                ->selectRaw('count(*) as jumlah')
+                ->groupBy('diagnosa')
+                ->orderByDesc('jumlah')
+                ->first();
+
             $namaPenyakit = $penyakitTeratas ? $penyakitTeratas->diagnosa : 'Belum ada data';
 
-            // 4. Masukkan ke Konteks AI
             $contextData .= "[DATA OPERASIONAL KLINIK REAL-TIME]\n";
             $contextData .= "- Statistik Pasien: Hari ini {$pasienHariIni} orang, Total terdaftar {$totalPasien} orang.\n";
             $contextData .= "- Keuangan Global: Pendapatan hari ini Rp " . number_format($pendapatanHariIni, 0, ',', '.') . ", Total pendapatan Rp " . number_format($pendapatanKeseluruhan, 0, ',', '.') . ".\n";
@@ -140,27 +134,27 @@ class ChatbotController extends Controller
             $contextData .= "- Tren Kesehatan: Penyakit tersering saat ini adalah {$namaPenyakit}.\n";
             $contextData .= "Sumber Data: Sistem Manajemen Klinik\n\n";
 
-            // Data Stok Obat
+            // Data stok obat
             $semua_obat = Obat::all();
             $contextData .= "[DATA STOK OBAT]\n";
+
             foreach ($semua_obat as $obat) {
                 $contextData .= "- {$obat->nama_obat}: Stok sisa {$obat->stok} {$obat->satuan}, Harga Rp " . number_format($obat->harga, 0, ',', '.') . ".\n";
             }
+
             $contextData .= "Sumber Data: Database Apotek\n\n";
 
-            // Data Jadwal Dokter
+            // Jadwal dokter
             $jadwal = JadwalDokter::with('dokter')->get();
             $contextData .= "[DATA JADWAL DOKTER]\n";
-            foreach($jadwal as $j) {
+
+            foreach ($jadwal as $j) {
                 $namaD = $j->dokter->nama_lengkap ?? 'Dokter';
-                $contextData .= "- {$namaD} praktik hari " . ucfirst($j->hari) . " jam " . substr($j->jam_mulai,0,5) . " - " . substr($j->jam_selesai,0,5) . ".\n";
+                $contextData .= "- {$namaD} praktik hari " . ucfirst($j->hari) . " jam " . substr($j->jam_mulai, 0, 5) . " - " . substr($j->jam_selesai, 0, 5) . ".\n";
             }
+
             $contextData .= "Sumber Data: Database Jadwal Dokter\n\n";
 
-            // ==========================================================
-            // TAHAP 3: AUGMENTATION (PEMBENTUKAN PROMPT)
-            // ==========================================================
-            
             $systemPrompt = "Kamu adalah Asisten AI Virtual (RAG System) untuk staf Klinik Bina Usada.
             [WAKTU SEKARANG]
             {$waktuSekarang} (Zona WITA)
@@ -179,27 +173,20 @@ class ChatbotController extends Controller
 
             [KONTEKS DATA DATABASE]:\n" . $contextData;
 
-            // ==========================================================
-            // TAHAP 4: GENERATION DENGAN FITUR INGATAN (CHAT HISTORY)
-            // ==========================================================
-            
-            // 1. Ambil memori percakapan sebelumnya dari Session Laravel
             $chatHistory = session()->get('chatbot_memory', []);
 
-            // 2. Susun urutan pesan (System Prompt -> Riwayat -> Pertanyaan Baru)
             $geminiContents = [];
 
-            // A. Masukkan Aturan RAG (System Prompt) di urutan paling awal
             $geminiContents[] = [
                 'role' => 'user',
                 'parts' => [['text' => $systemPrompt]]
             ];
+
             $geminiContents[] = [
                 'role' => 'model',
                 'parts' => [['text' => 'Baik, saya mengerti aturan tersebut. Saya akan menjawab sesuai data yang diberikan.']]
             ];
 
-            // B. Masukkan Ingatan Percakapan Sebelumnya
             foreach ($chatHistory as $history) {
                 $geminiContents[] = [
                     'role' => $history['role'],
@@ -207,19 +194,17 @@ class ChatbotController extends Controller
                 ];
             }
 
-            // C. Masukkan Pertanyaan User yang Paling Baru
             $geminiContents[] = [
                 'role' => 'user',
                 'parts' => [['text' => $userMessage]]
             ];
 
-            // 3. Tembak ke API Gemini (v1)
             $generateResponse = Http::post(
                 "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key={$apiKey}",
                 [
                     'contents' => $geminiContents,
                     'generationConfig' => [
-                        'temperature' => 0.1, // Tetap rendah agar bot tidak halusinasi
+                        'temperature' => 0.1,
                         'topP' => 0.95,
                         'maxOutputTokens' => 2048,
                     ]
@@ -227,27 +212,25 @@ class ChatbotController extends Controller
             );
 
             if ($generateResponse->successful()) {
-                // Ambil teks balasan asli dari AI
                 $botReplyRaw = $generateResponse->json()['candidates'][0]['content']['parts'][0]['text'];
-                
-                // 4. SIMPAN KE MEMORI UNTUK PERTANYAAN SELANJUTNYA
+
                 $chatHistory[] = ['role' => 'user', 'text' => $userMessage];
                 $chatHistory[] = ['role' => 'model', 'text' => $botReplyRaw];
 
-                // Batasi memori maksimal 6 pasang (12 pesan) agar kuota server aman
                 if (count($chatHistory) > 12) {
                     $chatHistory = array_slice($chatHistory, -12);
                 }
+
                 session()->put('chatbot_memory', $chatHistory);
 
-                // Membersihkan markdown AI menjadi format HTML yang didukung sistem
-                $botReplyHtml = str_replace(['**', '*'], ['<b>', '</b>'], $botReplyRaw); 
+                $botReplyHtml = str_replace(['**', '*'], ['<b>', '</b>'], $botReplyRaw);
+
                 return response()->json(['reply' => $botReplyHtml]);
             }
 
-            // Menampilkan pesan error detail jika gagal terhubung ke AI
             $errorData = $generateResponse->json();
             $pesanError = $errorData['error']['message'] ?? 'Gagal mendapatkan respon dari server AI.';
+
             return response()->json(['reply' => '⚠️ Kendala AI: ' . $pesanError]);
 
         } catch (\Exception $e) {
@@ -255,20 +238,22 @@ class ChatbotController extends Controller
         }
     }
 
-    /**
-     * ALGORITMA COSINE SIMILARITY
-     */
-    private function calculateCosineSimilarity($vec1, $vec2) {
-        $dotProduct = 0; $normA = 0; $normB = 0;
+    private function calculateCosineSimilarity($vec1, $vec2)
+    {
+        $dotProduct = 0;
+        $normA = 0;
+        $normB = 0;
+
         $count = min(count($vec1), count($vec2));
-        
+
         for ($i = 0; $i < $count; $i++) {
             $dotProduct += $vec1[$i] * $vec2[$i];
             $normA += pow($vec1[$i], 2);
             $normB += pow($vec2[$i], 2);
         }
-        
+
         if ($normA == 0 || $normB == 0) return 0;
+
         return $dotProduct / (sqrt($normA) * sqrt($normB));
     }
 }

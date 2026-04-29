@@ -9,7 +9,7 @@ class Kunjungan extends Model
 {
     use HasFactory;
 
-    protected $table = 'kunjungans'; 
+    protected $table = 'kunjungans';
 
     protected $fillable = [
         'pasien_id',
@@ -24,7 +24,7 @@ class Kunjungan extends Model
         'biaya_jasa_dokter',
         'biaya_obat',
         'total_bayar',
-        'status_pembayaran', // <--- INI TAMBAHANNYA KAK
+        'status_pembayaran',
     ];
 
     public function pasien()
@@ -40,8 +40,8 @@ class Kunjungan extends Model
     public function obat()
     {
         return $this->belongsToMany(Obat::class, 'kunjungan_obat')
-                    ->withPivot('jumlah', 'harga_satuan', 'subtotal')
-                    ->withTimestamps();
+            ->withPivot('jumlah', 'harga_satuan', 'subtotal')
+            ->withTimestamps();
     }
 
     public function rekamMedis()

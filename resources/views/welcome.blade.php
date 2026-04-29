@@ -91,7 +91,7 @@
                 </div>
 
                 <div class="relative">
-                    <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Klinik Interior" class="rounded-3xl shadow-2xl object-cover h-[500px] w-full">
+                    <img src="{{ asset('images/foto_depan.png') }}" alt="Klinik Bina Usada" class="rounded-3xl shadow-2xl object-cover h-[500px] w-full">
                     <div class="absolute -bottom-6 -left-6 bg-white p-4 rounded-2xl shadow-xl flex items-center gap-4">
                         <div class="bg-green-100 p-3 rounded-full text-green-600"><i class="fas fa-star text-xl"></i></div>
                         <div>
@@ -131,6 +131,8 @@
                             $ikon = 'fas fa-bone';
                         } elseif (str_contains($namaPoli, 'kandungan') || str_contains($namaPoli, 'obgyn')) {
                             $ikon = 'fas fa-baby-carriage';
+                        } elseif (str_contains($namaPoli, 'kia')) { // PENAMBAHAN UNTUK KIA
+                            $ikon = 'fas fa-children';
                         } elseif (str_contains($namaPoli, 'kulit')) {
                             $ikon = 'fas fa-allergies';
                         } elseif (str_contains($namaPoli, 'tht')) {
@@ -161,29 +163,82 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                 <div class="relative">
-                    <img src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Dokter Konsultasi" class="rounded-3xl shadow-xl w-full object-cover h-[450px]">
+                    <img src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Dokter Konsultasi" class="rounded-3xl shadow-xl w-full object-cover h-[500px]">
                     <div class="absolute -top-6 -right-6 bg-primary text-white p-6 rounded-2xl shadow-lg text-center">
                         <i class="fas fa-award text-3xl mb-2"></i>
                         <p class="font-bold">ISO<br><span class="text-xs font-normal">Certified</span></p>
                     </div>
                 </div>
-                <div>
+                
+                <div x-data="{ tab: 'visi' }">
                     <h2 class="text-3xl font-extrabold text-dark mb-6">Tentang <span class="text-primary">Klinik Bina Usada</span></h2>
-                    <p class="text-gray-600 mb-6 leading-relaxed">
-                        Klinik Bina Usada adalah klinik kesehatan terpercaya yang telah melayani masyarakat selama lebih dari 15 tahun. Kami berkomitmen untuk memberikan pelayanan kesehatan berkualitas tinggi dengan mengutamakan kenyamanan dan kepuasan pasien.
-                    </p>
-                    <div class="grid grid-cols-2 gap-6 mt-8">
-                        <div class="border border-gray-200 rounded-xl p-5 text-center">
-                            <i class="fas fa-users text-3xl text-primary mb-3"></i>
-                            <h4 class="text-2xl font-bold text-dark">50,000+</h4>
-                            <p class="text-sm text-gray-500 font-medium">Pasien Dilayani</p>
-                        </div>
-                        <div class="border border-gray-200 rounded-xl p-5 text-center">
-                            <i class="fas fa-user-md text-3xl text-primary mb-3"></i>
-                            <h4 class="text-2xl font-bold text-dark">20+</h4>
-                            <p class="text-sm text-gray-500 font-medium">Dokter Ahli</p>
+                    
+                    <div class="flex space-x-2 bg-gray-100 p-1 rounded-xl mb-6">
+                        <button @click="tab = 'visi'" :class="{ 'bg-white shadow text-primary': tab === 'visi', 'text-gray-500 hover:text-gray-700': tab !== 'visi' }" class="flex-1 py-2.5 px-4 rounded-lg font-bold text-sm transition-all duration-300">Visi</button>
+                        <button @click="tab = 'misi'" :class="{ 'bg-white shadow text-primary': tab === 'misi', 'text-gray-500 hover:text-gray-700': tab !== 'misi' }" class="flex-1 py-2.5 px-4 rounded-lg font-bold text-sm transition-all duration-300">Misi</button>
+                        <button @click="tab = 'tujuan'" :class="{ 'bg-white shadow text-primary': tab === 'tujuan', 'text-gray-500 hover:text-gray-700': tab !== 'tujuan' }" class="flex-1 py-2.5 px-4 rounded-lg font-bold text-sm transition-all duration-300">Tujuan Klinik</button>
+                    </div>
+
+                    <div x-show="tab === 'visi'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
+                        <p class="text-gray-600 mb-6 leading-relaxed text-lg font-medium italic border-l-4 border-primary pl-5">
+                            "Menjadi klinik swasta yang dipilih dan dipercaya oleh masyarakat dengan mengutamakan kualitas pelayanan dan kepuasan pasien."
+                        </p>
+                        <div class="grid grid-cols-2 gap-6 mt-8">
+                            <div class="border border-gray-200 rounded-xl p-5 text-center bg-white hover:border-primary transition">
+                                <i class="fas fa-users text-3xl text-primary mb-3"></i>
+                                <h4 class="text-2xl font-bold text-dark">50,000+</h4>
+                                <p class="text-sm text-gray-500 font-medium">Pasien Dilayani</p>
+                            </div>
+                            <div class="border border-gray-200 rounded-xl p-5 text-center bg-white hover:border-primary transition">
+                                <i class="fas fa-user-md text-3xl text-primary mb-3"></i>
+                                <h4 class="text-2xl font-bold text-dark">20+</h4>
+                                <p class="text-sm text-gray-500 font-medium">Dokter Ahli</p>
+                            </div>
                         </div>
                     </div>
+
+                    <div x-show="tab === 'misi'" style="display: none;" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
+                        <ul class="space-y-4">
+                            <li class="flex items-start">
+                                <div class="flex-shrink-0 w-8 h-8 bg-blue-50 text-primary rounded-full flex items-center justify-center font-bold mr-4 border border-blue-100">1</div>
+                                <p class="text-gray-600 leading-relaxed pt-1">Memberikan pelayanan yang ramah dan bersahabat.</p>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="flex-shrink-0 w-8 h-8 bg-blue-50 text-primary rounded-full flex items-center justify-center font-bold mr-4 border border-blue-100">2</div>
+                                <p class="text-gray-600 leading-relaxed pt-1">Memberikan pelayanan yang berkualitas dan terjangkau.</p>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="flex-shrink-0 w-8 h-8 bg-blue-50 text-primary rounded-full flex items-center justify-center font-bold mr-4 border border-blue-100">3</div>
+                                <p class="text-gray-600 leading-relaxed pt-1">Memberikan pelayanan yang terintegrasi dengan pelayanan rujukan.</p>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div x-show="tab === 'tujuan'" style="display: none;" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-primary mt-1 mr-3"></i>
+                                <p class="text-gray-600 text-sm leading-relaxed">Memberikan pelayanan kesehatan yang berkualitas kepada pasien dengan perawatan yang personal, ramah, dan empatik.</p>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-primary mt-1 mr-3"></i>
+                                <p class="text-gray-600 text-sm leading-relaxed">Meningkatkan kepuasan pasien dengan mendengarkan, memahami, dan merespon kebutuhan serta harapan mereka secara efektif.</p>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-primary mt-1 mr-3"></i>
+                                <p class="text-gray-600 text-sm leading-relaxed">Menyediakan tim medis yang terlatih dan berpengalaman yang menjalankan praktik medis dan terus mengikuti perkembangan terbaru dalam bidang kesehatan.</p>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-primary mt-1 mr-3"></i>
+                                <p class="text-gray-600 text-sm leading-relaxed">Mengelola administrasi pasien dengan efisien dan transparan serta memberikan kemudahan akses bagi pasien.</p>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-primary mt-1 mr-3"></i>
+                                <p class="text-gray-600 text-sm leading-relaxed">Meningkatkan kesadaran dan edukasi masyarakat mengenai pentingnya kesehatan dan pencegahan penyakit melalui program-program penyuluhan dan kampanye kesehatan.</p>
+                            </li>
+                        </ul>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -198,12 +253,20 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                 @php
-                    $doctorImages = [
+                    // Kumpulan Foto Dummy Dokter Laki-Laki (HANYA PAKAI 2 FOTO YANG TERBUKTI JALAN)
+                    $maleImages = [
                         'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-                        'https://images.unsplash.com/photo-1537368910025-700350fe46c7?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-                        'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-                        'https://images.unsplash.com/photo-1622253692010-333f2da6031d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'
+                        'https://images.unsplash.com/photo-1537368910025-700350fe46c7?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'
                     ];
+
+                    // Kumpulan Foto Dummy Dokter Perempuan (HANYA PAKAI 2 FOTO YANG TERBUKTI JALAN)
+                    $femaleImages = [
+                        'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+                        'https://images.unsplash.com/photo-1527613426441-4da17471b66d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'
+                    ];
+
+                    $maleIndex = 0;
+                    $femaleIndex = 0;
                 @endphp
 
                 @forelse($dokters as $d)
@@ -215,13 +278,47 @@
                     $jadwalSorted = $d->jadwals->sortBy(function($j) use ($urutanHari) {
                         return $urutanHari[strtolower($j->hari)] ?? 99;
                     });
+
+                    // --- LOGIKA PENENTUAN GENDER OTOMATIS (BUG FIXED) ---
+                    $isFemale = false;
+
+                    // 1. Cek dari database (jika ada kolom jenis kelamin)
+                    if (!empty($d->jenis_kelamin)) {
+                        $jk = strtolower(trim($d->jenis_kelamin));
+                        if (in_array($jk, ['p', 'perempuan', 'wanita', 'w', 'female'])) {
+                            $isFemale = true;
+                        } elseif (in_array($jk, ['l', 'laki-laki', 'pria', 'male', 'laki'])) {
+                            $isFemale = false;
+                        }
+                    } 
+                    
+                    // 2. Jika di database kosong, tebak dari nama (Disempurnakan)
+                    if (empty($d->jenis_kelamin)) {
+                        $kataPerempuan = ['luh', 'ayu', 'dewi', 'dita', 'arsintha', 'shakuntalangi', 'ni', 'istri', 'putri', 'sri', 'tari', 'wati', 'eka', 'indah', 'sari', 'nur', 'astri', 'ika', 'indirasari'];
+                        foreach ($kataPerempuan as $kata) {
+                            // Menggunakan regex word boundary (\b) agar hanya mendeteksi KATA UTUH
+                            if (preg_match("/\b" . $kata . "\b/i", $d->nama_lengkap)) {
+                                $isFemale = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Tentukan foto yang dipakai agar tidak berurutan sama
+                    if ($isFemale) {
+                        $fotoDokter = $femaleImages[$femaleIndex % count($femaleImages)];
+                        $femaleIndex++;
+                    } else {
+                        $fotoDokter = $maleImages[$maleIndex % count($maleImages)];
+                        $maleIndex++;
+                    }
                 @endphp
 
                 <div x-data="{ showJadwal: false }">
                     
                     <div @click="showJadwal = true" class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all border border-gray-100 group cursor-pointer h-full flex flex-col transform hover:-translate-y-2">
                         <div class="relative overflow-hidden">
-                            <img src="{{ $doctorImages[$loop->index % 4] }}" alt="{{ $d->nama_lengkap }}" class="w-full h-72 object-cover object-top filter grayscale group-hover:grayscale-0 transition duration-500 group-hover:scale-105">
+                            <img src="{{ $fotoDokter }}" alt="{{ $d->nama_lengkap }}" class="w-full h-72 object-cover object-top filter grayscale group-hover:grayscale-0 transition duration-500 group-hover:scale-105">
                             <div class="absolute inset-0 bg-gradient-to-t from-dark/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-500 flex items-end justify-center pb-6">
                                 <span class="text-white font-bold text-sm bg-primary/90 px-4 py-2 rounded-full backdrop-blur-sm shadow-lg">
                                     <i class="far fa-calendar-alt mr-2"></i> Lihat Jadwal
@@ -243,7 +340,7 @@
                              
                              <div class="flex justify-between items-start mb-6">
                                  <div class="flex items-center gap-4">
-                                     <img src="{{ $doctorImages[$loop->index % 4] }}" class="w-16 h-16 rounded-full object-cover border-4 border-blue-50 shadow-sm">
+                                     <img src="{{ $fotoDokter }}" class="w-16 h-16 rounded-full object-cover border-4 border-blue-50 shadow-sm">
                                      <div>
                                          <h3 class="font-black text-xl text-dark leading-tight">{{ $d->nama_lengkap }}</h3>
                                          <p class="text-xs font-bold text-primary uppercase tracking-widest mt-1">Poli {{ $d->spesialis }}</p>
@@ -302,7 +399,7 @@
                 @endforelse
             </div>
             
-            @if($dokters->count() >= 4)
+            @if($dokters->count() >= 10)
             <div class="text-center mt-14">
                 <a href="{{ route('login') }}" class="inline-flex items-center gap-2 border-2 border-primary text-primary px-8 py-3 rounded-full font-bold hover:bg-primary hover:text-white transition duration-300">
                     <span>Lihat Semua Dokter</span>
@@ -389,16 +486,16 @@
                     <div class="w-16 h-16 bg-blue-50 text-primary rounded-2xl flex items-center justify-center text-3xl mx-auto mb-6">
                         <i class="fas fa-phone-alt"></i>
                     </div>
-                    <h4 class="text-xl font-bold text-dark mb-2">Telepon</h4>
-                    <p class="text-sm text-gray-600 leading-relaxed">+62 361 410764<br>Hubungi untuk darurat</p>
+                    <h4 class="text-xl font-bold text-dark mb-2">Telepon / WA</h4>
+                    <p class="text-sm text-gray-600 leading-relaxed"><a href="https://wa.me/6281337513637" target="_blank" class="hover:text-primary transition">081337513637</a><br>(0361) 410 764</p>
                 </div>
                 
                 <div class="bg-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] text-center border border-gray-100 transform hover:-translate-y-2 transition duration-300">
                     <div class="w-16 h-16 bg-blue-50 text-primary rounded-2xl flex items-center justify-center text-3xl mx-auto mb-6">
-                        <i class="far fa-envelope"></i>
+                        <i class="fab fa-instagram"></i>
                     </div>
-                    <h4 class="text-xl font-bold text-dark mb-2">Email</h4>
-                    <p class="text-sm text-gray-600 leading-relaxed">info@klinikbinausada.com<br>admin@klinikbinausada.com</p>
+                    <h4 class="text-xl font-bold text-dark mb-2">Instagram</h4>
+                    <p class="text-sm text-gray-600 leading-relaxed"><a href="https://instagram.com/klinik.binausada" target="_blank" class="hover:text-primary transition">@klinik.binausada</a><br>Follow untuk info terbaru</p>
                 </div>
                 
                 <div class="bg-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] text-center border border-gray-100 transform hover:-translate-y-2 transition duration-300">
@@ -406,7 +503,7 @@
                         <i class="far fa-clock"></i>
                     </div>
                     <h4 class="text-xl font-bold text-dark mb-2">Jam Operasional</h4>
-                    <p class="text-sm text-gray-600 leading-relaxed">Buka Setiap Hari<br>08:00 - 20:30 WITA</p>
+                    <p class="text-sm text-gray-600 leading-relaxed">Buka Setiap Hari<br>08:00 - 21:00 WITA</p>
                 </div>
             </div>
 

@@ -6,7 +6,7 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Berhasil!',
-                    text: '{{ session('success') }}',
+                    text: '{{ session("success") }}',
                     showConfirmButton: true,
                     confirmButtonColor: '#2563eb',
                     customClass: { popup: 'rounded-3xl', confirmButton: 'rounded-xl px-6 py-2 font-bold' }
@@ -71,7 +71,7 @@
                         <div class="text-gray-500 text-sm font-bold">Riwayat Kunjungan Saya</div>
                     </div>
 
-                    <a href="https://wa.me/6287750503953?text=Halo,%20Klinik%20Bina%20Usada.%20Saya%20ingin%20bertanya" target="_blank" class="bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col items-start hover:-translate-y-1 hover:shadow-lg transition duration-300 cursor-pointer group">
+                    <a href="https://wa.me/6281337513637?text=Halo,%20Klinik%20Bina%20Usada.%20Saya%20ingin%20bertanya" target="_blank" class="bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col items-start hover:-translate-y-1 hover:shadow-lg transition duration-300 cursor-pointer group">
                         <div class="bg-green-50 p-4 rounded-2xl text-green-500 group-hover:bg-green-500 group-hover:text-white transition duration-300 mb-4">
                             <i class="fab fa-whatsapp text-2xl"></i>
                         </div>
@@ -93,12 +93,18 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @forelse($jadwals as $jadwal)
+                    @php
+                        // Membuang kata "dr." atau "drg." dari nama lengkap
+                        $namaBersih = trim(str_ireplace(['dr. ', 'drg. ', 'dr.', 'drg.'], '', $jadwal->dokter->nama_lengkap));
+                        // Mengambil huruf pertama dari nama bersih
+                        $inisial = strtoupper(substr($namaBersih, 0, 1));
+                    @endphp
                     <div class="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 hover:border-blue-300 transition duration-300 overflow-hidden flex flex-col group relative">
                         <div class="absolute top-0 left-0 w-full h-1 bg-blue-100 group-hover:bg-blue-600 transition duration-300"></div>
                         <div class="p-6 md:p-8 flex-grow">
                             <div class="flex items-center gap-4 mb-6 border-b border-gray-50 pb-5">
                                 <div class="w-16 h-16 bg-blue-50 border-2 border-blue-100 rounded-2xl text-blue-500 flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition duration-300">
-                                    {{ strtoupper(substr($jadwal->dokter->nama_lengkap, 0, 1)) }}
+                                    {{ $inisial }}
                                 </div>
                                 <div>
                                     <h4 class="font-bold text-lg text-gray-900 leading-tight">{{ $jadwal->dokter->nama_lengkap }}</h4>
@@ -214,7 +220,7 @@
                                     <tr>
                                         <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider w-32">Waktu Kunjungan</th>
                                         <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Dokter Tujuan</th>
-                                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider w-24">Nomor</th>
+                                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">No. Antrean</th>
                                         <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
                                     </tr>
                                 </thead>
@@ -229,10 +235,10 @@
                                             <div class="font-bold text-gray-900">{{ $r->dokter->nama_lengkap }}</div>
                                             <div class="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Poli {{ $r->dokter->spesialis }}</div>
                                         </td>
-                                        <td class="px-6 py-4 text-center">
-                                            <span class="inline-block bg-gray-900 text-white font-bold text-sm px-3 py-1 rounded-lg">{{ $r->no_antrian }}</span>
+                                        <td class="px-6 py-4 text-center whitespace-nowrap">
+                                            <span class="inline-block bg-gray-900 text-white font-bold text-sm px-3 py-1 rounded-lg whitespace-nowrap">{{ $r->no_antrian }}</span>
                                         </td>
-                                        <td class="px-6 py-4 text-center">
+                                        <td class="px-6 py-4 text-center whitespace-nowrap">
                                             @php
                                                 $colors = [
                                                     'menunggu'  => 'bg-yellow-50 text-yellow-600 border-yellow-200',
